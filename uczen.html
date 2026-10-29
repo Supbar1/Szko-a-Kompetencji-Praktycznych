@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0709">
+<title>Drzewko rozwoju</title>
+<style>
+:root{
+  --bg:#0d0709; --bgtop:#3d1019; --m:#f3c33c; --m2:#ffe08a; --a:#52e0f5; --ad:#2a6f7c;
+  --ink:#e8f4f6; --muted:#7c9aa1; --red:#ff6b6b; --lock:#3a565d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+body{
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 4px),
+    radial-gradient(1200px 700px at 50% -10%,var(--bgtop) 0%,color-mix(in srgb,var(--bgtop) 45%,#0b0507) 45%,#0b0507 100%);
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+.view{min-height:100dvh;display:none;flex-direction:column}
+.view.on{display:flex}
+
+/* ---------- menu przedmiotów ---------- */
+.menuwrap{max-width:560px;width:100%;margin:0 auto;padding:calc(env(safe-area-inset-top) + 28px) 18px 28px;display:flex;flex-direction:column;gap:16px}
+.brand{letter-spacing:.28em;text-transform:uppercase;font-weight:800;font-size:.8rem;color:var(--red)}
+h1.big{margin:2px 0 6px;font-size:1.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--m);text-shadow:0 0 18px color-mix(in srgb,var(--m) 35%,transparent)}
+.lead{color:var(--muted);margin:0 0 6px;font-size:.95rem}
+.tile{
+  position:relative;display:flex;align-items:center;gap:18px;width:100%;text-align:left;
+  padding:20px 18px;border:1.5px solid var(--ad);background:linear-gradient(135deg,color-mix(in srgb,var(--a) 7%,transparent),rgba(0,0,0,.4));
+  clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));
+}
+.tile>svg.i{width:64px;height:64px;flex:0 0 auto;color:var(--a)}
+.tile>svg.i.lockic{width:26px;height:26px;position:absolute;right:20px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.tile .nm{font-size:1.25rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.tile .st{font-size:.85rem;color:var(--muted);margin-top:4px}
+.tile.live{border-color:var(--m);background:linear-gradient(135deg,color-mix(in srgb,var(--m) 16%,transparent),rgba(8,4,6,.6));box-shadow:inset 0 0 40px color-mix(in srgb,var(--m) 14%,transparent)}
+.tile.live>svg.i{color:var(--m2)}
+.tile.live .nm{color:var(--m)}
+.tile.live .st{color:var(--m2)}
+.tile{transition:box-shadow .2s,background .2s}
+.tile:not(.off):hover{background:linear-gradient(135deg,color-mix(in srgb,var(--m,var(--a)) 24%,transparent),rgba(8,4,6,.55));box-shadow:inset 0 0 44px color-mix(in srgb,var(--m,var(--a)) 28%,transparent),0 0 22px color-mix(in srgb,var(--m,var(--a)) 25%,transparent)}
+nav#side button{transition:background .2s,box-shadow .2s}
+nav#side button:hover{background:color-mix(in srgb,var(--sc,var(--a)) 16%,transparent);box-shadow:inset 0 0 22px color-mix(in srgb,var(--sc,var(--a)) 26%,transparent)}
+.tile.off{cursor:default;opacity:.55;border-style:dashed}
+.tile.off .nm{padding-right:34px}
+.bar{height:6px;background:rgba(255,255,255,.1);margin-top:8px;border-radius:3px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--m),var(--m2));width:0;transition:width .4s}
+svg.i{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- widok przedmiotu ---------- */
+.top{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 12px) 14px 10px;border-bottom:1px solid color-mix(in srgb,var(--a) 15%,transparent)}
+.back{border:1px solid var(--ad);background:color-mix(in srgb,var(--a) 6%,transparent);color:var(--a);padding:8px 12px;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.top h2{margin:0;font-size:1.05rem;letter-spacing:.2em;text-transform:uppercase;color:var(--m)}
+.top small{display:block;color:var(--muted);letter-spacing:.08em;font-size:.72rem;margin-top:2px}
+.body{flex:1;display:flex;min-height:0;position:relative}
+nav#side{flex:0 0 90px;display:flex;flex-direction:column;border-right:1px solid color-mix(in srgb,var(--a) 15%,transparent);background:rgba(0,0,0,.25);padding-top:10px}
+nav#side button{background:none;border:0;border-left:3px solid transparent;color:var(--sc,var(--a));padding:12px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;border-bottom:1px solid color-mix(in srgb,var(--a) 10%,transparent)}
+nav#side button svg{width:30px;height:30px}
+nav#side button b{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sc,var(--ink))}
+nav#side button span{font-size:.66rem;color:var(--muted)}
+nav#side button.on{background:linear-gradient(90deg,color-mix(in srgb,var(--sc,var(--a)) 24%,transparent),color-mix(in srgb,var(--sc,var(--a)) 4%,transparent));border-left-color:var(--sc,var(--a))}
+nav#side button.soon{color:var(--lock)}
+nav#side button.soon b{color:var(--muted)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#stage{flex:1;overflow-x:auto;overflow-y:visible;padding:6px 6px 120px}
+#stage svg.tree{width:100%;margin:0 auto;height:auto;display:block}
+.placeholder{align-self:center;text-align:center;color:var(--muted);padding:30px;line-height:1.5}
+.placeholder svg{width:70px;height:70px;color:var(--lock);margin-bottom:8px}
+
+/* węzły drzewka */
+.tree .ln{stroke-width:1.3;fill:none}
+.tree .ln.dim{stroke:color-mix(in srgb,var(--ad) 70%,#000)}
+.tree .ln.cy{stroke:var(--a);opacity:.75}
+.tree .ln.au{stroke:var(--m);filter:drop-shadow(0 0 3px color-mix(in srgb,var(--m) 80%,transparent))}
+.tree .node{cursor:pointer;outline:none}
+.tree .sh{stroke-width:2.4;transition:fill .2s,stroke .2s}
+.tree .sh2{fill:none;stroke-width:1;opacity:.55}
+.tree .ic{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tree .lb{font-size:9.6px;letter-spacing:.02em;stroke:#0b0507;stroke-width:4.5px;paint-order:stroke;stroke-linejoin:round}
+.tree .node.locked .sh{stroke:color-mix(in srgb,var(--ad) 60%,#000);fill:color-mix(in srgb,var(--ad) 10%,#08080a)}
+.tree .node.locked .sh2{stroke:color-mix(in srgb,var(--ad) 60%,#000)}
+.tree .node.locked .ic{color:color-mix(in srgb,var(--ad) 80%,#000)}
+.tree .node.locked .lb{fill:color-mix(in srgb,var(--ad) 45%,#8a979c)}
+.tree .node.available .sh{stroke:var(--a);fill:color-mix(in srgb,var(--a) 14%,#0b0507);animation:glow 1.9s ease-in-out infinite}
+.tree .node.available .sh2{stroke:var(--a)}
+.tree .node.available .ic{color:color-mix(in srgb,var(--a) 35%,#fff)}
+.tree .node.available .lb{fill:var(--ink)}
+.tree .node.mastered .sh{stroke:var(--m);fill:color-mix(in srgb,var(--m) 18%,#0b0507);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--m) 85%,transparent))}
+.tree .node.mastered .sh2{stroke:var(--m2)}
+.tree .node.mastered .ic{color:var(--m2)}
+.tree .node.mastered .lb{fill:var(--m2);font-weight:600}
+.tree .node:focus-visible .sh{stroke-width:3.5}
+.tree .node:hover .sh,.tree .node:focus-visible .sh{fill:color-mix(in srgb,var(--m) 26%,#0b0507);filter:drop-shadow(0 0 9px color-mix(in srgb,var(--m) 75%,transparent))}
+.tree .node.locked:hover .sh{fill:color-mix(in srgb,var(--ad) 28%,#08080a);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--ad) 80%,transparent))}
+.tree .node.available:hover .sh{fill:color-mix(in srgb,var(--a) 30%,#0b0507)}
+.tree .root .lb{font-size:13px;font-weight:800;letter-spacing:.2em;fill:var(--m)}
+@keyframes glow{50%{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--a) 90%,transparent))}}
+@media (prefers-reduced-motion:reduce){.tree .node.available .sh{animation:none}}
+
+
+/* zablokowane: wyraźnie przygaszone */
+.tree .node.locked{opacity:.5;filter:saturate(.3) brightness(.8);transition:opacity .2s}
+.tree .node.locked:hover{opacity:.85}
+.tree .ln.dim{opacity:.55}
+/* animacja zdobycia */
+.tree .bd{transform-box:fill-box;transform-origin:center}
+.tree .node.pop .bd{animation:popspin .9s cubic-bezier(.45,0,.3,1) both}
+@keyframes popspin{0%{transform:scale(1) rotate(0)}45%{transform:scale(1.55) rotate(180deg)}100%{transform:scale(1) rotate(360deg)}}
+.tree .node.wv .bd{animation:wvpulse .6s ease-out both;animation-delay:var(--d,0ms)}
+@keyframes wvpulse{0%{transform:scale(1)}40%{transform:scale(1.14);filter:drop-shadow(0 0 8px var(--m2))}100%{transform:scale(1)}}
+.tree .cab.wv .ln{animation:cabwv .7s ease-out both;animation-delay:var(--d,0ms)}
+@keyframes cabwv{0%{stroke-width:1.3}35%{stroke-width:3;stroke:#fff;opacity:1}100%{stroke-width:1.3}}
+#fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;
+  -webkit-mask-image:linear-gradient(180deg,transparent 35%,#000 50%,transparent 65%);mask-image:linear-gradient(180deg,transparent 35%,#000 50%,transparent 65%);
+  -webkit-mask-size:100% 300%;mask-size:100% 300%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+#fx.go{animation:fxsweep 1.8s ease-in-out both}
+@keyframes fxsweep{0%{opacity:0;-webkit-mask-position:0 100%;mask-position:0 100%}12%{opacity:.5}88%{opacity:.5}100%{opacity:0;-webkit-mask-position:0 0;mask-position:0 0}}
+.view{position:relative;z-index:1}
+@media (prefers-reduced-motion:reduce){#fx{display:none}.tree .node.pop .bd{animation:none}}
+
+/* pojawianie się drzewka po wejściu w dziedzinę */
+.tree .node.in{transform-box:fill-box;transform-origin:center;animation:nodein .5s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:var(--id,0ms)}
+@keyframes nodein{from{opacity:0;transform:scale(.55)}}
+.tree .cab.in{animation:cabin .45s ease-out both;animation-delay:var(--id,0ms)}
+@keyframes cabin{from{opacity:0}}
+
+
+/* zakładki ścieżek w dziedzinie */
+#pathbar{flex-wrap:wrap}
+#pathbar .pb-tabs{flex:0 0 100%;display:flex;gap:6px;overflow-x:auto;padding-top:2px}
+#pathbar .pb-tabs button{flex:0 0 auto;border:1px solid var(--m);background:rgba(0,0,0,.35);color:var(--m2);padding:6px 10px;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+#pathbar .pb-tabs button:hover{background:color-mix(in srgb,var(--m) 25%,transparent)}
+#pathbar .pb-tabs button.on{background:var(--m);color:#0b0507}
+/* dziennik partii */
+.gp{margin:4px 4px 14px;padding:12px 14px;border:1.5px solid var(--ad);background:linear-gradient(135deg,color-mix(in srgb,var(--m) 8%,transparent),rgba(0,0,0,.4));clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.gp-h{font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--m2);font-weight:800}
+.gp summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none}
+.gp summary::-webkit-details-marker{display:none}
+.gp summary::after{content:"\25BE";margin-left:auto;color:var(--m2);transition:transform .2s}
+.gp[open] summary::after{transform:rotate(180deg)}
+.gp summary em{font-style:normal;font-size:.74rem;color:var(--muted)}
+.gp[open] summary{margin-bottom:8px}
+.gp-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.85rem}
+.gp-row span{flex:1;min-width:0}
+.gp-row b{min-width:2ch;text-align:center;font-size:1.05rem;color:#fff}
+.gp-row button,.gc-act button{border:1px solid var(--ad);background:rgba(0,0,0,.4);color:var(--m2);width:32px;height:30px;font-size:1.1rem;line-height:1}
+.gp-row button:hover:not(:disabled){background:color-mix(in srgb,var(--m) 25%,transparent);box-shadow:0 0 10px color-mix(in srgb,var(--m) 40%,transparent)}
+.gp button:disabled,.gc-act button:disabled{opacity:.3;cursor:default}
+.gp-req{margin-top:8px;font-size:.74rem;color:var(--muted);line-height:1.5}
+.gp-req b{color:var(--ink);letter-spacing:.06em}
+.gp-req i{font-style:normal;font-weight:800}.gp-req i.ok{color:#5be08b}.gp-req i.no{color:var(--red)}
+/* kafelki gier logicznych */
+.gtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:4px}
+.gcard{border:1.5px solid color-mix(in srgb,var(--gc) 55%,#000);padding:14px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(135deg,color-mix(in srgb,var(--gc) 9%,transparent),rgba(0,0,0,.45));
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));transition:background .2s,box-shadow .2s}
+.gcard:hover{background:linear-gradient(135deg,color-mix(in srgb,var(--gc) 22%,transparent),rgba(8,4,6,.5));box-shadow:inset 0 0 36px color-mix(in srgb,var(--gc) 26%,transparent)}
+.gcard.done{border-color:var(--gc);box-shadow:inset 0 0 30px color-mix(in srgb,var(--gc) 22%,transparent)}
+.gc-top{display:flex;align-items:center;gap:12px}
+.gc-top svg{width:44px;height:44px;flex:0 0 auto;color:var(--gc)}
+.gc-top h3{margin:0;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gc)}
+.gc-cur{font-size:.8rem;color:var(--ink);margin-top:2px}
+.gc-desc{margin:0;font-size:.78rem;color:var(--muted);line-height:1.45}
+.gc-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.gc-bar i{display:block;height:100%;background:var(--gc);width:0;transition:width .4s}
+.gc-nxt{font-size:.72rem;color:color-mix(in srgb,var(--gc) 70%,#fff)}
+.gc-act{display:flex;gap:8px;margin-top:2px}
+.gc-act .gc-p{flex:1;width:auto;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-color:var(--gc);color:var(--gc)}
+.gc-act .gc-p:hover:not(:disabled){background:color-mix(in srgb,var(--gc) 22%,transparent)}
+.gcard.in{animation:nodein .5s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:var(--id,0ms)}
+
+.demo{margin-top:6px;padding-top:14px;border-top:1px solid color-mix(in srgb,var(--a) 14%,transparent);display:flex;flex-direction:column;gap:8px;font-size:.78rem;color:var(--muted);line-height:1.45}
+.demo button{align-self:flex-start;border:1px solid var(--ad);background:rgba(0,0,0,.35);color:var(--a);padding:8px 12px;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
+.demo button.sure{border-color:var(--red);color:var(--red)}
+.demo button:hover{background:color-mix(in srgb,var(--a) 14%,transparent)}
+
+/* stopka */
+.foot{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;padding:10px 14px calc(env(safe-area-inset-bottom) + 10px);background:linear-gradient(0deg,#0b0507 60%,rgba(11,5,7,.0));border-top:1px solid color-mix(in srgb,var(--a) 12%,transparent)}
+.foot .cnt{flex:1;font-size:.85rem;color:var(--a);letter-spacing:.06em;text-transform:uppercase}
+.foot .cnt b{color:var(--m);font-size:1.15rem}
+.foot .hint{color:var(--muted);font-size:.72rem;text-transform:none;letter-spacing:0;margin-top:2px}
+.rst{border:1px solid #6b2a2f;background:rgba(255,107,107,.07);color:var(--red);padding:8px 12px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+.rst.sure{background:var(--red);color:#1a0508}
+
+/* panel szczegółów */
+#shade{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#shade.on{opacity:1;pointer-events:auto}
+#sheet{
+  position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(560px,100%);z-index:21;transition:transform .25s;
+  background:linear-gradient(180deg,#14090d,#0b0507);border:1.5px solid var(--ad);border-bottom:0;
+  padding:18px 18px calc(env(safe-area-inset-bottom) + 18px);
+  clip-path:polygon(0 18px,18px 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);
+}
+#sheet.on{transform:translate(-50%,0)}
+#sheet .hd{display:flex;gap:14px;align-items:center}
+#sheet .hd svg{width:54px;height:54px;flex:0 0 auto;color:var(--a)}
+#sheet h3{margin:0;font-size:1.12rem;letter-spacing:.05em}
+.chip{display:inline-block;margin-top:4px;padding:2px 10px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid currentColor}
+.chip.mastered{color:var(--m)}.chip.available{color:var(--a)}.chip.locked{color:var(--muted)}
+#sheet p{margin:12px 0 0;line-height:1.5;font-size:.95rem}
+#sheet .goal{border-left:3px solid var(--m);padding:6px 10px;background:color-mix(in srgb,var(--m) 8%,transparent)}
+#sheet .goal b{color:var(--m);display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+#sheet .need{color:var(--red)}
+#sheet{max-height:90dvh;overflow-y:auto}
+#sheet .pz{margin-top:14px;border:1px dashed var(--ad);padding:12px;background:color-mix(in srgb,var(--a) 4%,transparent)}
+#sheet .pz h4{margin:0 0 4px;color:var(--a);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+#sheet .pz p{margin:8px 0 0}
+#sheet .pz .lst{font-size:.85rem;color:var(--muted);margin-top:4px}
+#sheet .pz .lst b{color:var(--ink)}
+#sheet .pz ol{margin:10px 0 0;padding-left:22px}
+#sheet .pz li{margin-bottom:6px;line-height:1.4;font-size:.93rem}
+#sheet .pz .q{font-weight:700;color:var(--m2)}
+.pzbtn{margin-top:10px;width:100%;padding:11px;border:1px solid var(--ad);background:color-mix(in srgb,var(--a) 8%,transparent);color:var(--a);text-transform:uppercase;letter-spacing:.08em;font-size:.8rem}
+#pzSol{margin-top:8px;border-left:3px solid var(--a);padding:2px 10px;background:color-mix(in srgb,var(--a) 7%,transparent)}
+.acts{display:flex;gap:10px;margin-top:16px}
+.acts button{flex:1;padding:13px;border:1px solid var(--ad);background:color-mix(in srgb,var(--a) 6%,transparent);color:var(--ink);text-transform:uppercase;letter-spacing:.08em;font-size:.85rem}
+.acts button.main{background:var(--m);border-color:var(--m);color:#1d1403;font-weight:800}
+.acts button.undo{border-color:#6b2a2f;color:var(--red);background:rgba(255,107,107,.07)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 152px);background:#000c;border:1px solid var(--ad);color:var(--ink);padding:9px 16px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+
+/* motywy kolorystyczne dziedzin */
+body[data-th="push"]{--m:#ff5a4d;--m2:#ffb3ab;--a:#ffc14d;--ad:#8a3f38;--bgtop:#40120e}
+body[data-th="pull"]{--m:#4da3ff;--m2:#b3d6ff;--a:#7df0ff;--ad:#31669a;--bgtop:#0e2140}
+body[data-th="legs"]{--m:#3ddc84;--m2:#a9f0c8;--a:#c6ff5c;--ad:#2f7d52;--bgtop:#0e2f1c}
+body[data-th="core"]{--m:#ffc233;--m2:#ffe29a;--a:#ff8a3d;--ad:#85601c;--bgtop:#3a2a0a}
+body[data-th="strategy"]{--m:#b48cff;--m2:#dcc9ff;--a:#ffd76b;--ad:#5f4a97;--bgtop:#24143f}
+body[data-th="programming"]{--m:#4c97ff;--m2:#b7d3ff;--a:#ffab19;--ad:#336aab;--bgtop:#0d2142}
+body[data-th="crime"]{--m:#2ec4b6;--m2:#a6efe8;--a:#ffd166;--ad:#216e69;--bgtop:#0a2926}
+/* pasek ścieżki rozwoju */
+#pathbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px 11px 16px;
+  background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--m) 28%,#0b0507) 0 9px,color-mix(in srgb,var(--m) 13%,#0b0507) 9px 18px);
+  border-bottom:2px solid var(--m);box-shadow:0 6px 20px color-mix(in srgb,var(--m) 28%,transparent)}
+#pathbar .pb-k{display:block;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--m2)}
+#pathbar .pb-k::before{content:"\00BB\00BB  ";letter-spacing:.1em}
+#pathbar .pb-n{display:block;margin-top:2px;font-size:1.2rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;text-shadow:0 0 14px var(--m)}
+#pathbar .pb-c{flex:0 0 auto;font-size:.85rem;color:var(--m2);letter-spacing:.08em;text-align:right}
+#pathbar .pb-c b{font-size:1.25rem;color:#fff}
+.tree .colsub{font-size:7.5px;font-weight:700;letter-spacing:.3em;fill:var(--ad);opacity:.95}
+.tree .colhd{font-size:11px;font-weight:800;letter-spacing:.12em;fill:var(--m2);stroke:#0b0507;stroke-width:3px;paint-order:stroke}
+.tree .colbar{fill:var(--m);opacity:.9}
+.chip.opt{color:var(--muted);margin-left:6px}
+nav#side button b{font-size:.66rem}
+</style>
+</head>
+<body>
+
+<!-- MENU PRZEDMIOTÓW -->
+<section class="view on" id="vMenu">
+  <div class="menuwrap">
+    <div class="brand">Szkoła kompetencji praktycznych</div>
+    <h1 class="big">Drzewko rozwoju</h1>
+    <p class="lead">Wybierz przedmiot, w którym chcesz sprawdzić swoje postępy.</p>
+    <div id="tiles" style="display:flex;flex-direction:column;gap:16px"></div>
+    <div class="demo"><span>Wersja testowa: część umiejętności jest już zdobyta, żebyś mógł zobaczyć, jak działa aplikacja.</span><button type="button" id="demoBtn">Przywróć dane demonstracyjne</button></div>
+  </div>
+</section>
+
+<!-- WIDOK PRZEDMIOTU -->
+<section class="view" id="vSubject">
+  <div class="top">
+    <button class="back" id="backBtn">← Przedmioty</button>
+    <div><h2 id="subTitle">Gimnastyka</h2><small id="subSub">Sekcje ciała</small></div>
+  </div>
+  <div class="body">
+    <nav id="side" aria-label="Sekcje przedmiotu"></nav>
+    <div id="main"><div id="pathbar"></div><div id="stage"></div></div>
+  </div>
+  <div class="foot">
+    <div class="cnt"><b id="cDone">0</b> / <span id="cAll">0</span> opanowanych
+      <div class="hint" id="hintTxt">Dotknij umiejętności, aby zobaczyć szczegóły</div></div>
+    <button class="rst" id="rstBtn">Reset ścieżki</button>
+  </div>
+</section>
+
+<div id="shade"></div>
+<div id="sheet" role="dialog" aria-modal="true"></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(id){return document.getElementById(id);};
+
+  /* ---------- ikony (rysunki własne, 40×40) ---------- */
+  var FLOOR='<path d="M2 36H37"/>';
+  var head=function(x,y){return '<circle cx="'+x+'" cy="'+y+'" r="3.2"/>';};
+  var FULL=FLOOR+head(34,22)+'<path d="M3 33L29 24M29 24V35"/>';
+  var INC_LO=FLOOR+'<rect x="28" y="29" width="10" height="7"/>'+head(28,19)+'<path d="M3 35L23 22M23 22L30 29"/>';
+  var ICONS={
+    wall:'<path d="M35 3V37M3 37H35"/>'+head(27,9)+'<path d="M8 36L23 14M23 14L33 16"/>',
+    inc_hi:FLOOR+'<rect x="28" y="22" width="10" height="14"/>'+head(26.5,10.5)+'<path d="M4 35L23 15M23 15L30 22"/>',
+    inc_lo:INC_LO,
+    knee:FLOOR+head(33,19)+'<path d="M3 29L10 35L28 23M28 23V35"/>',
+    full:FULL,
+    wide:FULL+'<path d="M4 8H17M4 8L7 5M4 8L7 11M17 8L14 5M17 8L14 11"/>',
+    diamond:FULL+'<path d="M10 4L15 9L10 14L5 9Z"/>',
+    decline:FLOOR+'<rect x="1" y="21" width="9" height="15"/>'+head(34,28)+'<path d="M5 20L29 27M29 27V35"/>',
+    clap:FULL+'<path d="M8 9L12 13M17 4V10M26 9L22 13"/>',
+    pseudo:FLOOR+head(34,22.5)+'<path d="M3 31L29 24M29 24L23 35"/>',
+    archer:FULL+'<path d="M29 24H39" stroke-dasharray="2 2.5"/>',
+    one_arm_inc:INC_LO+'<text x="4" y="15" font-size="14" font-weight="700" fill="currentColor" stroke="none">1</text>',
+    one_arm:FULL+'<text x="4" y="15" font-size="14" font-weight="700" fill="currentColor" stroke="none">1</text>',
+    pull:'<path d="M5 6H35"/>'+head(20,15)+'<path d="M20 19V31M20 31L15 38M20 31L25 38M20 21L14 6M20 21L26 6"/>',
+    legs:head(18,7)+'<path d="M18 11L14 22L25 24L23 36M18 14L29 14M10 36H30"/>',
+    core:'<rect x="11" y="5" width="18" height="30" rx="6"/><path d="M20 5V35M11 15H29M11 24H29"/>',
+    logic:'<circle cx="10" cy="10" r="4"/><circle cx="30" cy="10" r="4"/><circle cx="20" cy="30" r="4"/><path d="M14 10H26M12 13.5L18 27M28 13.5L22 27"/>',
+    know:'<path d="M20 10C15 7 9 7 4 9V31C9 29 15 29 20 32C25 29 31 29 36 31V9C31 7 25 7 20 10ZM20 10V32"/>',
+    lock:'<rect x="9" y="18" width="22" height="16" rx="2"/><path d="M13 18V13A7 7 0 0 1 27 13V18"/>'
+  };
+  function icon(name,cls){ return '<svg class="i '+(cls||'')+'" viewBox="0 0 40 40" aria-hidden="true">'+ICONS[name]+'</svg>'; }
+
+
+  /* ---------- ikony: Pull, Legs, Core ---------- */
+  var BAR5='<path d="M4 5H36"/>', BAR14='<path d="M4 14H36"/>';
+  Object.assign(ICONS,{
+    p_hang:BAR5+head(20,14)+'<path d="M20 18V31M20 31L17 38M20 31L23 38M20 20L14 5M20 20L26 5"/>',
+    p_rows_hi:'<path d="M2 36H37M33 10V36M27 10H39"/>'+head(30.4,19.5)+'<path d="M3 35L26 22M26 22L30 10"/>',
+    p_rows_lo:'<path d="M2 36H37M33 25V36M27 25H39"/>'+head(30,30)+'<path d="M3 35L25 31M25 31L30 25"/>',
+    p_neg:BAR5+head(20,18)+'<path d="M13 5L11 14L17 22M27 5L29 14L23 22M20 22V34M20 34L17 38M20 34L23 38M35 14V30M35 30L32 27M35 30L38 27"/>',
+    p_up:BAR14+head(20,8)+'<path d="M13 14L17 20M27 14L23 20M20 12V30M20 30L17 38M20 30L23 38"/>',
+    p_chin:BAR14+head(20,8)+'<path d="M17 14L18 20M23 14L22 20M20 12V30M20 30L17 38M20 30L23 38"/>',
+    p_wide:'<path d="M2 14H38"/>'+head(20,8)+'<path d="M5 14L17 20M35 14L23 20M20 12V30M20 30L17 38M20 30L23 38"/>',
+    p_chest:'<path d="M4 22H36"/>'+head(20,8)+'<path d="M13 22L17 14M27 22L23 14M20 12V32M20 32L17 38M20 32L23 38"/>',
+    p_lsit:'<path d="M4 6H36"/>'+head(20,12)+'<path d="M13 6L17 16M27 6L23 16M20 16V29H36"/>',
+    p_archer:BAR14+head(22,8)+'<path d="M14 14L18 21M20 12V30M20 30L17 38M20 30L23 38"/><path d="M22 21H38" stroke-dasharray="2 2.5"/>',
+    p_expl:BAR14+head(20,8)+'<path d="M13 14L17 20M27 14L23 20M20 12V30M20 30L17 38M20 30L23 38M3 22H8M4 28H9M5 34H10"/>',
+    p_ctb:'<path d="M4 26H36"/>'+head(20,8)+'<path d="M13 26L16 16M27 26L24 16M20 12V34M20 34L17 39M20 34L23 39"/>',
+    p_mu:'<path d="M4 26H36"/>'+head(20,8)+'<path d="M15 26L17 15M25 26L23 15M20 12V32M20 32L17 38M20 32L23 38M33 36Q38 26 31 18M31 18V22M31 18L35 19"/>',
+    g_assist:FLOOR+'<path d="M32 6V36"/>'+head(15,8)+'<path d="M15 12L11 23L22 25L20 35M15 15L32 15"/>',
+    g_box:FLOOR+'<rect x="4" y="26" width="14" height="10"/>'+head(18,8)+'<path d="M18 12L12 25L24 25L24 35M18 15L28 15"/>',
+    g_sq:FLOOR+head(17,8)+'<path d="M17 12L12 24L24 26L22 35M17 15L28 15"/>',
+    g_lunge:FLOOR+head(18,6)+'<path d="M18 10V22L28 26V35M18 22L10 30L6 35"/>',
+    g_deep:FLOOR+head(17,10)+'<path d="M17 14L11 30L25 31L24 35M17 17L29 17"/>',
+    g_bulg:FLOOR+'<rect x="2" y="25" width="10" height="11"/>'+head(22,6)+'<path d="M22 10V22L31 26V35M22 22L14 28L7 25"/>',
+    g_jump:FLOOR+head(17,6)+'<path d="M17 10L12 20L23 22L21 29M17 13L27 13M35 18V6M35 6L32 9M35 6L38 9"/>',
+    g_skater:FLOOR+head(18,8)+'<path d="M18 12L13 24L22 26L21 35M13 24L5 29L3 35"/>',
+    g_lateral:FLOOR+head(20,8)+'<path d="M20 12V24L4 35M20 24L31 27V35"/>',
+    g_boxjump:FLOOR+'<rect x="22" y="22" width="15" height="14"/>'+head(9,10)+'<path d="M9 14V26L6 35M9 26L13 35M13 20Q19 8 25 17M25 17L22 16M25 17V21"/>',
+    g_pass:FLOOR+'<path d="M4 6V36"/>'+head(14,8)+'<path d="M14 12L12 24L22 28L21 35M12 24L35 24M14 15L4 15"/>',
+    g_pbox:FLOOR+'<rect x="2" y="27" width="12" height="9"/>'+head(15,8)+'<path d="M15 12L10 26L20 27L20 35M10 26L34 25M15 15L27 15"/>',
+    g_pistol:FLOOR+head(14,8)+'<path d="M14 12L10 28L20 31L19 35M10 28L35 27M14 15L27 15"/>',
+    c_kpl:FLOOR+head(34,22)+'<path d="M12 35L29 26V34H37M4 31L12 35"/>',
+    c_plank:FLOOR+head(34,22)+'<path d="M3 33L29 26V34H37"/>',
+    c_legr:FLOOR+head(4,28)+'<path d="M9 33H20M20 33V10"/>',
+    c_dead:FLOOR+head(4,28)+'<path d="M9 33H18M18 33V24H28M9 33V18"/>',
+    c_hollow:head(6,18)+'<path d="M10 20Q21 36 34 20"/>',
+    c_hrock:head(6,16)+'<path d="M10 18Q21 32 34 18M7 38H33M7 38L10 35M33 38L30 35"/>',
+    c_side:FLOOR+head(9,14)+'<path d="M12 20L37 35M12 20V35"/>',
+    c_hkr:BAR5+head(20,14)+'<path d="M20 18V28L28 26L26 36M20 20L14 5M20 20L26 5"/>',
+    c_rus:head(7,10)+'<path d="M9 14L14 30H20M14 30L32 22M10 19H24M2 36H22"/>',
+    c_lsit:head(14,8)+'<path d="M14 13V27H37M14 16L9 35M2 36H20"/>',
+    c_hleg:BAR5+head(20,14)+'<path d="M20 18V28H37M20 20L14 5M20 20L26 5"/>',
+    c_dtuck:head(6,29)+'<path d="M2 35H18M10 31V17L19 12L14 5"/>',
+    c_dragon:head(6,29)+'<path d="M2 35H18M10 31L22 3M22 3L34 7L24 11"/>'
+  });
+
+  /* ---------- dane drzewka: PUSH ---------- */
+  var L=52, C=160, R=268;
+  var PUSH=[
+    {id:'wall',x:C,y:160,t:'main',label:['Pompki przy','ścianie'],icon:'wall',req:[],
+      desc:'Pompki w pochyleniu, z dłońmi na ścianie. Najłagodniejszy start: uczy ustawienia łokci i prostego ciała.',goal:'3 serie po 20 powtórzeń, bez zapadania bioder.'},
+    {id:'inc_hi',x:C,y:270,t:'main',label:['Pompki na','wysokim stopniu'],icon:'inc_hi',req:['wall'],
+      desc:'Dłonie na wysokim podwyższeniu (parapet, stół). Im niższe podwyższenie, tym większe obciążenie.',goal:'3 serie po 15 powtórzeń.'},
+    {id:'inc_lo',x:C,y:380,t:'main',label:['Pompki na','niskim stopniu'],icon:'inc_lo',req:['inc_hi'],
+      desc:'Dłonie na niskim stopniu lub ławce. Ciało w jednej linii od głowy do pięt.',goal:'3 serie po 12 powtórzeń.'},
+    {id:'knee',x:L,y:380,t:'small',label:['Pompki na','kolanach'],icon:'knee',req:['inc_lo'],
+      desc:'Pompki z podparciem na kolanach. Dobra opcja pomocnicza, gdy pełna pompka jeszcze nie wychodzi. Ciało prosto od kolan do głowy.',goal:'3 serie po 12 powtórzeń.'},
+    {id:'full',x:C,y:500,t:'mile',label:['Klasyczna','pompka'],icon:'full',req:['inc_lo'],
+      desc:'Pompka na podłodze: pełny zakres ruchu, klatka prawie dotyka podłogi, ciało w jednej linii.',goal:'3 serie po 10 powtórzeń w dobrej technice.'},
+    {id:'wide',x:L,y:500,t:'small',label:['Pompki','szerokie'],icon:'wide',req:['full'],
+      desc:'Dłonie szerzej niż barki. Większy nacisk na mięśnie klatki piersiowej.',goal:'3 serie po 10 powtórzeń.'},
+    {id:'diamond',x:R,y:500,t:'small',label:['Pompki','diamentowe'],icon:'diamond',req:['full'],
+      desc:'Dłonie blisko siebie, kciuki i palce wskazujące tworzą romb. Mocniej pracują tricepsy.',goal:'3 serie po 8 powtórzeń.'},
+    {id:'decline',x:C,y:620,t:'main',label:['Pompki z nogami','wysoko'],icon:'decline',req:['full'],
+      desc:'Stopy na podwyższeniu. Przenosi ciężar na barki i górną część klatki.',goal:'3 serie po 10 powtórzeń.'},
+    {id:'clap',x:L,y:620,t:'small',label:['Pompki z','klaśnięciem'],icon:'clap',req:['decline'],
+      desc:'Dynamiczna pompka: odepchnięcie na tyle mocne, by dłonie oderwały się od podłogi. Zadbaj o miękkie lądowanie.',goal:'3 serie po 5 powtórzeń.'},
+    {id:'pseudo',x:R,y:620,t:'small',label:['Pseudo','planche'],icon:'pseudo',req:['decline'],
+      desc:'Dłonie przy biodrach, ciało pochylone do przodu. Przygotowuje barki i nadgarstki do trudniejszych figur.',goal:'3 serie po 6 powtórzeń.'},
+    {id:'archer',x:C,y:730,t:'main',label:['Pompki','łucznika'],icon:'archer',req:['decline'],
+      desc:'Jedna ręka pracuje, druga jest wyprostowana w bok. Pierwszy krok w stronę pompki na jednej ręce.',goal:'3 serie po 6 powtórzeń na stronę.'},
+    {id:'one_arm_inc',x:C,y:840,t:'main',label:['1 ręka na','podwyższeniu'],icon:'one_arm_inc',req:['archer'],
+      desc:'Pompka na jednej ręce z dłonią na podwyższeniu. Stopniowo obniżaj podwyższenie.',goal:'3 serie po 5 powtórzeń na stronę.'},
+    {id:'one_arm',x:C,y:960,t:'mile',label:['Pompka na','1 ręce'],icon:'one_arm',req:['one_arm_inc'],
+      desc:'Pompka na jednej ręce na podłodze. Pełna kontrola: nogi szeroko, biodra stabilne, ruch powolny.',goal:'3 powtórzenia na stronę, wolno i kontrolowanie.'}
+  ];
+
+
+  /* ---------- ikony: Szachy, Programowanie, Łamigłówki ---------- */
+  Object.assign(ICONS,{
+    ch_board:'<rect x="6" y="6" width="28" height="28"/><g fill="currentColor" stroke="none"><rect x="6" y="6" width="9.3" height="9.3"/><rect x="24.7" y="6" width="9.3" height="9.3"/><rect x="15.3" y="15.3" width="9.3" height="9.3"/><rect x="6" y="24.7" width="9.3" height="9.3"/><rect x="24.7" y="24.7" width="9.3" height="9.3"/></g>',
+    ch_moves1:'<path d="M20 4V36M4 20H36M8 8L32 32M32 8L8 32"/><circle cx="20" cy="20" r="3.5"/>',
+    ch_moves2:'<path d="M10 33V15H27M27 15L23 11M27 15L23 19"/><circle cx="10" cy="33" r="2.5"/>',
+    ch_castle:'<path d="M6 14H34M34 14L29 9M34 14L29 19M34 26H6M6 26L11 21M6 26L11 31"/>',
+    ch_mate:'<path d="M20 4V12M16 8H24"/><path d="M13 35H27L24 21Q30 17 26 13H14Q10 17 16 21Z"/>',
+    ch_value:'<path d="M20 6V32M11 34H29M7 12H33M7 12L3 22H11ZM33 12L29 22H37Z"/>',
+    ch_notation:'<rect x="4" y="9" width="32" height="22" rx="3"/><text x="20" y="26" font-size="15" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">e4</text>',
+    ch_queen:'<path d="M8 34H32M10 34L6 14L14 22L20 8L26 22L34 14L30 34Z"/>',
+    ch_fork:'<path d="M20 36V19M8 6V15Q8 20 14 20H26Q32 20 32 15V6M20 6V19"/>',
+    ch_open:'<rect x="5" y="5" width="30" height="30"/><rect x="14" y="14" width="12" height="12"/><path d="M20 14V26M14 20H26"/>',
+    ch_tactic:'<text x="20" y="27" font-size="17" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">#2</text><rect x="4" y="6" width="32" height="28" rx="3"/>',
+    ch_end:'<circle cx="20" cy="11" r="5"/><path d="M15 34H25M17 34L18 18H22L23 34M14 18H26"/>',
+    ch_rank:'<path d="M5 35H35M7 35V25H15V35M15 35V19H25V35M25 35V28H33V35"/><path d="M20 4L21.9 8.4L26.6 8.8L23 11.9L24.1 16.5L20 14L15.9 16.5L17 11.9L13.4 8.8L18.1 8.4Z"/>',
+    ch_tourn:'<path d="M12 6H28V16Q28 24 20 24Q12 24 12 16ZM12 10H6Q6 18 12 18M28 10H34Q34 18 28 18M20 24V30M14 34H26M16 30H24"/>',
+    s_first:'<path d="M8 6V34M8 6L24 10L8 16"/><rect x="16" y="22" width="20" height="10" rx="2"/>',
+    s_motion:'<path d="M20 4V36M4 20H36M20 4L16 8M20 4L24 8M20 36L16 32M20 36L24 32M4 20L8 16M4 20L8 24M36 20L32 16M36 20L32 24"/>',
+    s_looks:'<path d="M6 8H34V26H18L10 33V26H6Z"/><path d="M13 17H27"/>',
+    s_costume:'<rect x="5" y="9" width="20" height="20" rx="2"/><rect x="15" y="13" width="20" height="20" rx="2"/>',
+    s_loop:'<path d="M30 12A12 12 0 1 0 32 24M30 12V5M30 12H23"/>',
+    s_nested:'<rect x="5" y="6" width="30" height="28" rx="4"/><rect x="12" y="13" width="16" height="14" rx="3"/>',
+    s_pen:'<path d="M8 32L10 26L28 8L32 12L14 30ZM24 12L28 16M8 32L14 30"/>',
+    s_cond:'<path d="M20 5L35 20L20 35L5 20Z"/><text x="20" y="26" font-size="16" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">?</text>',
+    s_msg:'<rect x="4" y="9" width="32" height="22" rx="2"/><path d="M4 11L20 22L36 11"/>',
+    s_sprites:'<circle cx="12" cy="10" r="4"/><circle cx="28" cy="10" r="4"/><path d="M12 15V27M6 20H18M12 27L8 35M12 27L16 35M28 15V27M22 20H34M28 27L24 35M28 27L32 35"/>',
+    s_var:'<rect x="5" y="9" width="30" height="22" rx="3"/><text x="20" y="27" font-size="15" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">x</text>',
+    s_list:'<path d="M14 10H34M14 20H34M14 30H34"/><circle cx="7" cy="10" r="1.6"/><circle cx="7" cy="20" r="1.6"/><circle cx="7" cy="30" r="1.6"/>',
+    s_game:'<path d="M8 14H32Q38 14 36 26L34 31Q32 33 29 30L26 26H14L11 30Q8 33 6 31L4 26Q2 14 8 14Z"/><path d="M12 18V24M9 21H15M27 20H28M31 22H32"/>',
+    code:'<path d="M14 12L5 20L14 28M26 12L35 20L26 28M23 8L17 32"/>',
+    k_file:'<path d="M4 10H16L19 14H36V32H4Z"/>',
+    k_clues:'<circle cx="17" cy="17" r="10"/><path d="M25 25L35 35"/>',
+    k_grid:'<rect x="5" y="5" width="30" height="30"/><path d="M15 5V35M25 5V35M5 15H35M5 25H35M7 7L13 13M13 7L7 13M17 20L20 23L24 17"/>',
+    k_alibi:'<circle cx="20" cy="20" r="14"/><path d="M20 11V20L27 24"/>',
+    k_first:'<path d="M12 31Q9 18 20 12Q31 18 28 31M16 33Q14 23 20 17Q26 23 24 33M20 35V23"/>',
+    k_elim:'<circle cx="20" cy="20" r="13"/><path d="M11 11L29 29"/>',
+    k_chain:'<rect x="4" y="14" width="19" height="12" rx="6"/><rect x="17" y="14" width="19" height="12" rx="6"/>',
+    k_four:'<rect x="5" y="5" width="30" height="30"/><path d="M12.5 5V35M20 5V35M27.5 5V35M5 12.5H35M5 20H35M5 27.5H35"/>',
+    k_contra:'<path d="M20 5A10 10 0 0 0 14 23V28H26V23A10 10 0 0 0 20 5ZM15 32H25M17 36H23"/>',
+    k_proofs:'<path d="M6 20L20 6H34V20L20 34Z"/><circle cx="28" cy="12" r="2"/>',
+    k_liar:'<path d="M6 8H34V26H18L10 33V26H6Z"/><path d="M20 12V19M20 22V22.5"/>',
+    k_five:'<rect x="5" y="5" width="30" height="30"/><path d="M11 5V35M17 5V35M23 5V35M29 5V35M5 11H35M5 17H35M5 23H35M5 29H35"/>',
+    k_own:'<rect x="6" y="5" width="22" height="30" rx="2"/><path d="M11 12H23M11 18H23M11 24H17M24 32L34 16L38 19L28 35Z"/>'
+  });
+
+  function N(id,x,y,t,label,ic,req,desc,goal,pz){ var o={id:id,x:x,y:y,t:t,label:label,icon:ic,req:req,desc:desc,goal:goal}; if(pz) o.puzzle=pz; return o; }
+  var PULL=[
+    N('hang',C,160,'main',['Zwis na','drążku'],'p_hang',[],'Wisisz na wyprostowanych rękach, łopatki lekko ściągnięte. Buduje chwyt i przyzwyczaja barki do obciążenia.','3 zwisy po 30 sekund.'),
+    N('rows_hi',C,270,'main',['Australijskie','wysoko'],'p_rows_hi',['hang'],'Ciało pod wysokim drążkiem, stopy na podłodze, podciągasz klatkę do drążka. Im bardziej pionowo, tym łatwiej.','3 serie po 12 powtórzeń.'),
+    N('rows_lo',C,380,'main',['Australijskie','nisko'],'p_rows_lo',['rows_hi'],'Drążek niżej, ciało prawie poziomo. Plecy i biodra w jednej linii.','3 serie po 10 powtórzeń.'),
+    N('neg',L,380,'small',['Negatywy','podciągnięć'],'p_neg',['rows_lo'],'Wskakujesz do górnej pozycji i opuszczasz się jak najwolniej. Najlepszy sposób na pierwsze podciągnięcie.','3 serie po 5 powtórzeń, opuszczanie przez 5 sekund.'),
+    N('pullup',C,500,'mile',['Pełne','podciągnięcie'],'p_up',['rows_lo'],'Z pełnego zwisu podciągasz się, aż broda minie drążek, i kontrolowanie wracasz w dół.','3 serie po 5 powtórzeń.'),
+    N('chin',L,500,'small',['Podciągnięcie','podchwytem'],'p_chin',['pullup'],'Dłonie skierowane do siebie, chwyt wąski. Mocniej pracują bicepsy.','3 serie po 6 powtórzeń.'),
+    N('wide',R,500,'small',['Szeroki','chwyt'],'p_wide',['pullup'],'Chwyt szerszy niż barki. Większy nacisk na najszersze mięśnie grzbietu.','3 serie po 5 powtórzeń.'),
+    N('chest',C,620,'main',['Podciągnięcie','do klatki'],'p_chest',['pullup'],'Podciągasz się wyżej, aż drążek zbliży się do klatki piersiowej.','3 serie po 6 powtórzeń.'),
+    N('lsit',L,620,'small',['Podciągnięcia','z L-sit'],'p_lsit',['chest'],'Podciągnięcie z nogami wyprostowanymi przed sobą. Mocno angażuje brzuch.','3 serie po 5 powtórzeń.'),
+    N('archer',R,620,'small',['Podciągnięcia','łucznika'],'p_archer',['chest'],'Jedna ręka ciągnie, druga prostuje się w bok. Przygotowanie do podciągnięć na jednej ręce.','3 serie po 4 powtórzenia na stronę.'),
+    N('explosive',C,730,'main',['Podciągnięcia','wybuchowe'],'p_expl',['chest'],'Dynamiczne podciągnięcie: tak mocne, by klatka sięgnęła drążka, a ciało lekko się uniosło.','3 serie po 5 powtórzeń.'),
+    N('ctb',C,840,'main',['Klatka do','drążka'],'p_ctb',['explosive'],'Podciągasz się tak wysoko, że drążek dotyka klatki lub brzucha. Niezbędne do wymyku.','3 serie po 5 powtórzeń.'),
+    N('muscleup',C,960,'mile',['Wymyk','(muscle-up)'],'p_mu',['ctb'],'Płynne przejście z podciągnięcia do podporu nad drążkiem i kontrolowane zejście. Ćwicz pod okiem nauczyciela.','3 powtórzenia w czystej technice.')
+  ];
+  var LEGS=[
+    N('assist',C,160,'main',['Przysiad','z podparciem'],'g_assist',[],'Przysiad z asekuracją: trzymasz się framugi lub drążka. Uczy ustawienia kolan i bioder.','3 serie po 15 powtórzeń.'),
+    N('box',C,270,'main',['Przysiad','do ławki'],'g_box',['assist'],'Siadasz na ławce lub skrzyni i wstajesz. Wysokość ławki reguluje trudność.','3 serie po 15 powtórzeń.'),
+    N('sq',C,380,'main',['Przysiad','klasyczny'],'g_sq',['box'],'Przysiad z własnym ciężarem: stopy na szerokość barków, pięty na podłodze, kolana w linii palców.','3 serie po 20 powtórzeń.'),
+    N('lunge',L,380,'small',['Wykroki','w miejscu'],'g_lunge',['sq'],'Naprzemienne wykroki. Uczą równowagi i pracy każdej nogi osobno.','3 serie po 10 na nogę.'),
+    N('deep',C,500,'mile',['Głęboki','przysiad'],'g_deep',['sq'],'Przysiad poniżej poziomu kolan, plecy proste, pięty dociśnięte do podłogi.','3 serie po 15 powtórzeń.'),
+    N('bulg',L,500,'small',['Przysiad','bułgarski'],'g_bulg',['deep'],'Tylna noga oparta na ławce. Ćwiczenie na jednej nodze, ale z podparciem.','3 serie po 8 na nogę.'),
+    N('jump',R,500,'small',['Przysiad','z wyskokiem'],'g_jump',['deep'],'Dynamiczny przysiad zakończony wyskokiem i miękkim lądowaniem.','3 serie po 10 powtórzeń.'),
+    N('skater',C,620,'main',['Skater','squat'],'g_skater',['deep'],'Przysiad na jednej nodze z odchyloną do tyłu drugą nogą. Pierwszy krok do pistoleta.','3 serie po 6 na nogę.'),
+    N('lateral',L,620,'small',['Zakroki','boczne'],'g_lateral',['skater'],'Wykrok w bok, druga noga pozostaje prosta. Buduje mobilność bioder.','3 serie po 8 na stronę.'),
+    N('boxjump',R,620,'small',['Skoki','na skrzynię'],'g_boxjump',['skater'],'Wyskok z przysiadu na stabilną skrzynię i zejście krok po kroku.','3 serie po 6 powtórzeń.'),
+    N('pass',C,730,'main',['Pistol z','podparciem'],'g_pass',['skater'],'Przysiad na jednej nodze z podparciem ręką o drążek lub framugę. Druga noga prosta przed sobą.','3 serie po 5 na nogę.'),
+    N('pbox',C,840,'main',['Pistol do','skrzyni'],'g_pbox',['pass'],'Pistolet do siadu na skrzyni, bez podparcia rękami. Z czasem obniżaj skrzynię.','3 serie po 5 na nogę.'),
+    N('pistol',C,960,'mile',['Pistol','squat'],'g_pistol',['pbox'],'Pełny przysiad na jednej nodze, druga wyprostowana przed sobą, pięta na podłodze.','3 powtórzenia na nogę, kontrolowane.')
+  ];
+  var CORE=[
+    N('kpl',C,160,'main',['Deska','na kolanach'],'c_kpl',[],'Podpór na przedramionach i kolanach, ciało w linii od kolan do głowy.','3 serie po 30 sekund.'),
+    N('plank',C,270,'main',['Deska','(plank)'],'c_plank',['kpl'],'Podpór na przedramionach i palcach. Brzuch i pośladki napięte, biodra nie opadają.','3 serie po 45 sekund.'),
+    N('legr',C,380,'main',['Unoszenie','nóg leżąc'],'c_legr',['plank'],'Leżysz na plecach, unosisz proste nogi do pionu i kontrolowanie opuszczasz. Dolny odcinek pleców dociśnięty.','3 serie po 10 powtórzeń.'),
+    N('dead',L,380,'small',['Dead','bug'],'c_dead',['legr'],'Na plecach, ręce w górę, nogi w „stoliku”. Naprzemiennie prostujesz rękę i przeciwną nogę.','3 serie po 10 na stronę.'),
+    N('hollow',C,500,'mile',['Hollow','body'],'c_hollow',['legr'],'Pozycja „banana”: plecy dociśnięte do podłogi, ręce za głową, nogi tuż nad podłogą.','3 serie po 30 sekund.'),
+    N('hrock',L,500,'small',['Hollow','rock'],'c_hrock',['hollow'],'Pozycja hollow z kołysaniem. Mocno angażuje wszystkie mięśnie brzucha.','3 serie po 15 kołysań.'),
+    N('side',R,500,'small',['Deska','boczna'],'c_side',['hollow'],'Podpór na jednym przedramieniu, ciało w linii bocznej. Wzmacnia mięśnie skośne.','3 serie po 30 sekund na stronę.'),
+    N('hkr',C,620,'main',['Unoszenie kolan','w zwisie'],'c_hkr',['hollow'],'W zwisie na drążku unosisz kolana do klatki, bez bujania.','3 serie po 10 powtórzeń.'),
+    N('rus',L,620,'small',['Skręty','rosyjskie'],'c_rus',['hkr'],'Siad podparty, stopy nad podłogą. Skręty tułowia na boki.','3 serie po 20 skrętów.'),
+    N('lsit',R,620,'small',['L-sit'],'c_lsit',['hkr'],'Podpór na rękach, nogi wyprostowane i uniesione przed sobą.','3 serie po 15 sekund.'),
+    N('hleg',C,730,'main',['Unoszenie nóg','w zwisie'],'c_hleg',['hkr'],'W zwisie unosisz proste nogi do poziomu drążka.','3 serie po 8 powtórzeń.'),
+    N('dtuck',C,840,'main',['Dragon flag','z ugiętymi nogami'],'c_dtuck',['hleg'],'Leżysz na ławce, trzymasz ją za głową i unosisz biodra z ugiętymi nogami. Ciało tworzy linię od barków do kolan.','3 serie po 5 powtórzeń.'),
+    N('dragon',C,960,'mile',['Dragon flag'],'c_dragon',['dtuck'],'Ciało proste jak flaga, oparte tylko na barkach. Wolne opuszczanie bez zginania w biodrach. Ćwicz pod okiem nauczyciela.','3 powtórzenia, wolno i kontrolowanie.')
+  ];
+
+  var CHESS=[
+    N('moves1',C,270,'main',['Ruchy','podstawowe'],'ch_moves1',[],'Uczysz się, jak porusza się każda z sześciu figur. Wieża idzie prosto, goniec po skosach, hetman łączy oba ruchy, skoczek skacze w kształcie litery L i jako jedyny przeskakuje inne figury, pion idzie do przodu, a bije na skos, król porusza się o jedno pole.','Pokaż ruch i bicie każdej z sześciu figur w 5 różnych ustawieniach.'),
+    N('moves2',C,380,'main',['Ruchy','zaawansowane'],'ch_castle',['moves1'],'Ruchy specjalne: roszada, bicie w przelocie i zamiana piona na hetmana po dojściu na koniec szachownicy.','Wykonaj każdy z trzech ruchów specjalnych w grze z nauczycielem.'),
+    N('mate',C,500,'mile',['Szach','i mat'],'ch_mate',['moves2'],'Szach to atak na króla, mat to szach bez obrony, a pat to brak ruchu bez szacha. Uczysz się rozpoznawać wszystkie trzy sytuacje.','Rozpoznaj mata, szacha i pata w 6 przykładowych pozycjach.'),
+    N('value',L,500,'small',['Wartość','figur'],'ch_value',['mate'],'Pion to 1 punkt, skoczek i goniec po 3, wieża 5, hetman 9. Wartość figur pomaga ocenić, czy wymiana jest opłacalna.','Oceń 5 wymian figur: opłacalna albo nie.'),
+    N('notation',R,500,'small',['Notacja','szachowa'],'ch_notation',['mate'],'Zapisujesz ruchy w notacji szachowej (np. e4, Sf3) i odtwarzasz partię z zapisu.','Zapisz krótką partię i odtwórz ją z notacji.'),
+    N('simple',C,620,'main',['Proste','maty'],'ch_queen',['mate'],'Maty hetmanem i wieżą w końcówce: zapędzasz króla przeciwnika w róg i dajesz mata.','Postaw mata hetmanem i wieżą w mniej niż 10 ruchach.'),
+    N('fork',L,620,'small',['Widełki','i związania'],'ch_fork',['simple'],'Widełki to atak jedną figurą na dwie naraz, związanie to figura, która nie może się ruszyć. To najczęstsze taktyki w partii.','Znajdź widełki i związanie w 4 z 5 pozycji.'),
+    N('open',R,620,'small',['Zasady','otwarcia'],'ch_open',['simple'],'Kontroluj środek, rozwijaj skoczki i gońce, zrób roszadę i nie ruszaj tej samej figury wiele razy.','Rozegraj 3 otwarcia zgodnie z tymi zasadami.'),
+    N('tactic',C,730,'main',['Taktyka:','mat w 2 ruchach'],'ch_tactic',['simple'],'Znajdujesz mata w dwóch ruchach. Planujesz własny ruch, odpowiedź przeciwnika i swój następny ruch.','Rozwiąż 5 zadań „mat w dwóch ruchach”.'),
+    N('endgame',C,840,'main',['Końcówki','z pionami'],'ch_end',['tactic'],'Król i pion przeciw królowi: opozycja i droga piona do promocji. Zrozumienie końcówek decyduje o wielu partiach.','Wygraj 3 z 5 pozycji z królem i pionem.'),
+    N('tourn',C,960,'mile',['Turniej','szkolny'],'ch_tourn',['endgame'],'Ostatni krok: rozgrywasz pełne partie na szkolnym turnieju, zapisujesz je w notacji i samodzielnie analizujesz. Wskazujesz swój najlepszy ruch, największy błąd i moment, w którym mogłeś wygrać szybciej.','Zagraj 3 partie turniejowe i przeanalizuj jedną z nich z notacją. Aby wziąć udział, musisz mieć rozegrane min. 4 partie: po co najmniej 1 w każdym typie (10 min + 5 s, 60 min, blitz).'),
+    N('rank',C,1080,'mile',['Turniej','rankingowy'],'ch_rank',['tourn'],'Najwyższy poziom: grasz w turnieju rankingowym z uczniami z innych klas lub szkół. Twoje wyniki trafiają do rankingu, a Ty uczysz się grać pod presją czasu i wyniku.','Rozegraj cały turniej rankingowy i zapisz swoje miejsce w rankingu. Aby wziąć udział, musisz mieć rozegrane min. 10 partii, po co najmniej 3 w każdym typie. Partie z turnieju szkolnego też się liczą.')
+  ];
+
+  var SCRATCH=[
+    N('g_char',58,90,'main',['Postać','i scena'],'g_sprite',[],'Dodajesz postać z biblioteki Scratcha, wybierasz tło sceny, ustawiasz położenie i rozmiar postaci.','Scena z tłem i dwiema postaciami ustawionymi w wybranych miejscach.'),
+    N('g_cost',58,200,'main',['Kostiumy','i animacja'],'s_costume',['g_char'],'Każda postać ma kostiumy. Przełączasz je klockiem „Następny kostium” w pętli i tworzysz animację, np. chodzenie.','Postać „chodzi” po scenie dzięki zmianie kostiumów.'),
+    N('g_edit',141,90,'main',['Edytor','grafiki'],'g_edit',[],'W edytorze rysujesz własną postać i tło: kształty, kolory, tekst, wypełnienia i grupowanie elementów.','Własna postać i własne tło narysowane w edytorze.'),
+    N('g_ai',209,90,'small',['Grafika','z AI'],'g_ai',['g_edit'],'Tworzysz postać lub tło za pomocą narzędzia AI do generowania obrazów, a potem wgrywasz je do Scratcha jako kostium. Robisz to razem z nauczycielem i w narzędziu przeznaczonym dla dzieci.','Postać wygenerowana z pomocą AI, dopracowana w edytorze i użyta w projekcie.'),
+    N('g_dyn',141,200,'main',['Dynamiczna','grafika'],'g_dyn',['g_edit'],'Zmieniasz wygląd w trakcie programu: efekty (kolor, przezroczystość), rozmiar, pokaż i ukryj, przesunięcie warstw. Postać reaguje na to, co się dzieje.','Postać zmienia kolor i rozmiar po zdarzeniu, np. po dotknięciu przeszkody.'),
+    N('g_pen',209,200,'small',['Pisak','(rysowanie)'],'s_pen',['g_dyn'],'Rozszerzenie Pisak: postać rysuje ślad podczas ruchu. Łączysz je z pętlami, by rysować figury.','Narysuj gwiazdę lub spiralę.'),
+    N('g_lvl',58,310,'main',['Tła','i poziomy'],'g_lvl',['g_cost'],'Zmieniasz tło w trakcie gry (kolejne poziomy lub plansze) klockiem „Zmień tło na” w odpowiednim momencie.','Gra ma co najmniej 2 plansze, które zmieniają się po spełnieniu warunku.'),
+    N('g_clone',209,310,'small',['Klony'],'g_clone',['g_pen'],'Klonowanie tworzy wiele kopii jednej postaci, np. spadających gwiazdek. Wymaga pętli i warunków.','Scena z kilkoma klonami, które zachowują się niezależnie.'),
+    N('c_first',276,90,'main',['Pierwszy','program'],'s_first',[],'Składasz pierwszy skrypt w Scratchu: klocek „Gdy kliknięto zieloną flagę” oraz klocki Ruch i Wygląd (np. „Powiedz”).','Postać mówi „Cześć!” i przesuwa się po kliknięciu zielonej flagi.'),
+    N('c_move',276,200,'main',['Ruch','i współrzędne'],'s_motion',['c_first'],'Poruszasz postacią klockami „Przesuń o”, „Obróć” i „Idź do x: y:”. Poznajesz układ współrzędnych na scenie.','Postać obchodzi scenę po kwadracie.'),
+    N('c_loop',276,310,'main',['Pętle','(powtórz)'],'s_loop',['c_move'],'Zamiast powtarzać te same klocki, używasz pętli „Powtórz” i „Zawsze”. Program jest krótszy i czytelniejszy.','Postać obchodzi kwadrat jednym klockiem „Powtórz 4” zamiast kilkunastu klocków.'),
+    N('c_nest',344,310,'small',['Pętle','zagnieżdżone'],'s_nested',['c_loop'],'Pętla w pętli: powtarzasz cały ciąg czynności wiele razy.','Program rysuje lub animuje wzór z kilku powtórzeń w powtórzeniu.'),
+    N('c_cond',276,420,'main',['Warunki','i czujniki'],'s_cond',['c_loop'],'Klocki „Jeśli … to” i „Jeśli … to … w przeciwnym razie” oraz czujniki, np. „Dotyka koloru” i „Dotyka obiektu”.','Postać odbija się od ściany i reaguje na dotknięcie przeszkody.'),
+    N('c_ops',344,420,'small',['Operatory','i losowanie'],'c_ops',['c_cond'],'Działania na liczbach, porównania, „Losuj liczbę od … do …” i łączenie tekstu.','Postać pojawia się w losowym miejscu, a program porównuje dwie liczby.'),
+    N('c_var',190,560,'main',['Zmienne','(punkty)'],'s_var',['c_cond'],'Tworzysz zmienną (np. „punkty”), ustawiasz ją, zwiększasz i pokazujesz na scenie.','Gra liczy punkty i pokazuje je na ekranie.'),
+    N('c_msg',362,560,'main',['Komunikaty'],'s_msg',['c_cond'],'Postacie rozmawiają ze sobą klockami „Nadaj” i „Gdy otrzymam”.','Jedna postać woła, a druga odpowiada.'),
+    N('c_list',190,670,'main',['Listy'],'s_list',['c_var'],'Tworzysz listę, dodajesz elementy, odczytujesz je po numerze i przechodzisz po całej liście pętlą.','Program zapisuje 5 imion na liście i wypisuje je pętlą.'),
+    N('c_myb',276,560,'small',['Moje','bloki'],'c_myb',['c_var','c_msg'],'Tworzysz własny klocek z kilku klocków (np. „narysuj kwadrat”) i używasz go wiele razy, także z parametrami.','Własny klocek z parametrem użyty co najmniej 3 razy w projekcie.'),
+    N('s_play',411,90,'main',['Odtwarzanie','dźwięków'],'snd_play',[],'Dodajesz dźwięki z biblioteki i odtwarzasz je klockami „Zagraj dźwięk” oraz „Zagraj do końca”.','Postać wydaje dźwięk po kliknięciu i po dotknięciu innej postaci.'),
+    N('s_rec',411,200,'main',['Nagrywanie','i edycja'],'snd_rec',['s_play'],'Nagrywasz własny dźwięk mikrofonem i edytujesz go w edytorze: przycinasz, zmieniasz tempo, dodajesz echo.','Własne nagranie przycięte i użyte w projekcie.'),
+    N('s_vol',411,310,'main',['Głośność','i efekty'],'snd_vol',['s_rec'],'Zmieniasz głośność i efekty dźwięku (wysokość, panoramowanie). Dźwięk reaguje na to, co dzieje się na ekranie.','Dźwięk staje się cichszy lub głośniejszy w zależności od odległości postaci.'),
+    N('s_mus',343,90,'small',['Muzyka','(rozszerzenie)'],'snd_mus',['s_play'],'Rozszerzenie Muzyka: instrumenty, perkusja i tempo. Komponujesz krótką melodię klockami.','Krótka melodia z użyciem 2 instrumentów.'),
+    N('s_tts',479,90,'small',['Tekst','na mowę'],'snd_tts',['s_play'],'Rozszerzenie Tekst na mowę: postać czyta napisany tekst na głos, z wybranym głosem i językiem.','Postać czyta dialog na głos.'),
+    N('s_tr',479,200,'small',['Tłumacz'],'snd_tr',['s_play'],'Rozszerzenie Tłumacz tłumaczy tekst na inny język. Z Tekstem na mowę postać mówi w obcym języku.','Postać wypowiada zdanie po polsku i w wybranym języku obcym.'),
+    N('s_game',411,420,'main',['Dźwięk','w grze'],'snd_game',['s_vol'],'Muzyka w tle odtwarzana w pętli oraz efekty dźwiękowe na zdarzenia: zbieranie punktów, kolizja, koniec gry.','Gra ma muzykę w tle i co najmniej 3 różne efekty dźwiękowe.'),
+    N('game',235,830,'mile',['Własna','gra'],'s_game',['g_lvl','g_dyn','c_msg','c_list','s_game'],'Przedostatni krok: łączysz grafikę, kod i dźwięk w grze, którą sam zaprojektowałeś. Odblokowuje się po ukończeniu wszystkich trzech ścieżek.','Ukończona gra z grafiką, punktacją, listą wyników i dźwiękiem.'),
+    N('group',235,950,'mile',['Projekt','grupowy'],'group',['game'],'Ostatni krok: w grupie planujecie i tworzycie wspólny projekt. Dzielicie się rolami (grafika, kod, dźwięk, testy), łączycie pracę w jednym projekcie i prezentujecie go klasie.','Wspólny projekt zaprezentowany klasie, w którym każdy odpowiada za inną część.')
+  ];
+  SCRATCH.forEach(function(n){ if(n.id==='c_myb') n.any=true; });
+  CHESS.forEach(function(n){ if(n.id==='tourn') n.gate='school'; if(n.id==='rank') n.gate='rank'; });
+  var COLS={
+    gfx:{m:'#9966ff',m2:'#d3bdff',a:'#d9c2ff',ad:'#52408a'},
+    code:{m:'#ffab19',m2:'#ffd98a',a:'#ffe29a',ad:'#8a6218'},
+    snd:{m:'#cf63cf',m2:'#efb3ef',a:'#ffb8ff',ad:'#733f73'}
+  };
+  function colStyle(c){ var t=COLS[c]; return t?('--m:'+t.m+';--m2:'+t.m2+';--a:'+t.a+';--ad:'+t.ad):''; }
+  SCRATCH.forEach(function(n){ var f=n.id.charAt(0); if(n.id==='game'||n.id==='group') return; n.col=(f==='g'?'gfx':(f==='c'?'code':'snd')); });
+
+  Object.assign(ICONS,{
+    g_sprite:'<rect x="4" y="6" width="32" height="28" rx="2"/><circle cx="15" cy="16" r="3.5"/><path d="M15 20V27M9 23H21M15 27L11 32M15 27L19 32M24 34L30 24L36 34"/>',
+    g_edit:'<rect x="4" y="8" width="24" height="26" rx="2"/><path d="M26 28L36 8L39 10L29 30ZM26 28L25 33L29 30"/>',
+    g_ai:'<path d="M16 6L19 15L28 18L19 21L16 30L13 21L4 18L13 15Z"/><path d="M31 4V12M27 8H35M31 24V32M27 28H35"/>',
+    g_dyn:'<path d="M6 12H34M6 20H34M6 28H34"/><circle cx="14" cy="12" r="3"/><circle cx="26" cy="20" r="3"/><circle cx="18" cy="28" r="3"/>',
+    g_lvl:'<path d="M20 6L36 14L20 22L4 14Z"/><path d="M4 21L20 29L36 21"/><path d="M4 28L20 36L36 28"/>',
+    g_clone:'<circle cx="12" cy="11" r="4"/><path d="M12 16V27M6 21H18M12 27L8 35M12 27L16 35"/><circle cx="28" cy="11" r="4" stroke-dasharray="2 2"/><path d="M28 16V27M22 21H34M28 27L24 35M28 27L32 35" stroke-dasharray="2 2"/>',
+    c_ops:'<path d="M9 13H19M14 8V18M24 13H34M9 29H19M24 24L34 34M34 24L24 34"/>',
+    c_myb:'<path d="M6 12H16A4 4 0 1 1 24 12H34V22A4 4 0 1 0 34 30V34H6Z"/>',
+    snd_play:'<path d="M6 15H12L20 8V32L12 25H6Z"/><path d="M26 14Q30 20 26 26M30 10Q38 20 30 30"/>',
+    snd_rec:'<rect x="15" y="5" width="10" height="18" rx="5"/><path d="M9 19Q9 30 20 30Q31 30 31 19M20 30V36M14 36H26"/>',
+    snd_vol:'<path d="M8 28V18M14 28V10M20 28V22M26 28V12M32 28V20M6 34H34"/>',
+    snd_tts:'<path d="M5 6H35V26H20L12 33V26H5Z"/><path d="M12 16H14M18 11V21M24 13V19M30 16H28"/>',
+    snd_tr:'<text x="11" y="17" font-size="11" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">PL</text><text x="29" y="34" font-size="11" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">EN</text><path d="M17 23H34M34 23L30 19M34 23L30 27"/>',
+    snd_mus:'<path d="M14 30V8L32 5V27"/><circle cx="10" cy="30" r="4"/><circle cx="28" cy="27" r="4"/>',
+    snd_game:'<path d="M5 14H11L19 7V33L11 26H5Z"/><path d="M25 12L36 20L25 28Z"/>',
+    group:'<circle cx="12" cy="11" r="4"/><circle cx="28" cy="11" r="4"/><circle cx="20" cy="19" r="4.5"/><path d="M4 33Q4 21 12 21Q16 21 18 23M36 33Q36 21 28 21Q24 21 22 23M12 37Q12 25 20 25Q28 25 28 37"/>'
+  });
+  Object.assign(ICONS,{
+    cp_num:'<text x="20" y="26" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">A=1</text><rect x="4" y="9" width="32" height="22" rx="3"/>',
+    cp_caesar:'<circle cx="20" cy="20" r="14"/><circle cx="20" cy="20" r="7"/><path d="M20 3V9M20 20L26 14"/>',
+    cp_atbash:'<path d="M20 5V35" stroke-dasharray="3 3"/><path d="M6 14L15 20L6 26ZM34 14L25 20L34 26Z"/>',
+    cp_rail:'<path d="M4 28L12 12L20 28L28 12L36 28"/><circle cx="12" cy="12" r="2"/><circle cx="28" cy="12" r="2"/>',
+    cp_vig:'<circle cx="12" cy="20" r="6"/><path d="M18 20H36M30 20V26M35 20V25"/>',
+    cp_freq:'<path d="M6 34V24M14 34V14M22 34V20M30 34V8M4 34H36"/>',
+    cp_own:'<rect x="9" y="18" width="22" height="16" rx="2"/><path d="M13 18V13A7 7 0 0 1 27 13V18M20 24V28"/>',
+    cp_morse:'<path d="M5 20H8M13 20H25M30 20H33" stroke-width="4"/>',
+    cp_pigpen:'<path d="M15 5V35M25 5V35M5 15H35M5 25H35"/>',
+    cp_poly:'<rect x="6" y="6" width="28" height="28"/><path d="M6 15H34M6 24H34M15 6V34M24 6V34"/><circle cx="20" cy="20" r="2"/>',
+    t_sudoku:'<rect x="5" y="5" width="30" height="30" rx="2"/><path d="M15 5V35M25 5V35M5 15H35M5 25H35"/><text x="10" y="13" font-size="8" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">5</text><text x="30" y="33" font-size="8" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">9</text>',
+    t_smart:'<path d="M6 12H16A4 4 0 1 1 24 12H34V22A4 4 0 1 0 34 30V34H6Z"/>',
+    t_mensa:'<path d="M20 5A10 10 0 0 0 14 23V28H26V23A10 10 0 0 0 20 5Z"/><path d="M15 32H25M17 36H23"/>',
+    t_quarto:'<rect x="8" y="14" width="24" height="22"/><circle cx="20" cy="25" r="6"/><path d="M12 14V8H28V14"/>',
+    t_pent:'<path d="M14 5H26V17H34V29H22V35H10V23H14Z"/>',
+    t_quor:'<path d="M5 5H35V35H5ZM15 5V35M25 5V35M5 15H35M5 25H35"/><path d="M15 15H25" stroke-width="4.5"/>'
+  });
+  var PZ={"file": {"title": "Pocięty plakat", "intro": "Ktoś pociął plakat szkolnego konkursu. Obok leżały ścinki papieru, więc sprawca użył nożyczek.", "people": ["Ola", "Bartek", "Celina"], "places": ["biblioteka", "pracownia", "boisko"], "items": ["nożyczki", "klej", "marker"], "clues": ["Bartek był w pracowni.", "Celina była na boisku.", "Bartek miał nożyczki."], "q": "Ustal, kto miał nożyczki i gdzie ta osoba była.", "sol": "Sprawcą jest Bartek: miał nożyczki i był w pracowni.", "full": "Ola – klej – biblioteka; Bartek – nożyczki – pracownia; Celina – marker – boisko"}, "clues": {"title": "Zniknęło ciasto", "intro": "Z kuchni zniknęło ciasto przygotowane na szkolny festyn. Na talerzu zostały ślady od widelca.", "people": ["Kuba", "Maja", "Staś"], "places": ["kuchnia", "aula", "korytarz"], "items": ["widelec", "łyżka", "serwetka"], "clues": ["Kuba nie miał łyżki.", "Kuba nie miał serwetki.", "Staś był w auli.", "Maja nie była na korytarzu."], "q": "Ustal, kto miał widelec i gdzie ta osoba była.", "sol": "Sprawcą jest Kuba: miał widelec i był na korytarzu.", "full": "Kuba – widelec – korytarz; Maja – łyżka – kuchnia; Staś – serwetka – aula"}, "grid": {"title": "Rozlana farba", "intro": "Ktoś rozmazał świeżą farbę na obrazie wiszącym w szkole. Ślady wskazują na pędzel.", "people": ["Ania", "Igor", "Zosia"], "places": ["pracownia plastyczna", "szatnia", "świetlica"], "items": ["pędzel", "wałek", "gąbka"], "clues": ["Zosia nie była w szatni.", "Zosia nie była w pracowni plastycznej.", "Osoba, która miała pędzel, nie była w pracowni plastycznej.", "Osoba, która miała gąbkę, była w szatni."], "q": "Ustal, kto miał pędzel i gdzie ta osoba była.", "sol": "Sprawcą jest Zosia: miała pędzel i była w świetlicy.", "full": "Ania – wałek – pracownia plastyczna; Igor – gąbka – szatnia; Zosia – pędzel – świetlica"}, "alibi": {"title": "Zatrzymany zegar", "intro": "Zegar na szkolnym korytarzu przestał chodzić. Ktoś odkręcił jego obudowę śrubokrętem.", "people": ["Hania", "Wojtek", "Lena"], "places": ["pracownia techniczna", "aula", "hol"], "items": ["śrubokręt", "kombinerki", "taśma"], "clues": ["Lena nie była w auli.", "Wojtek miał kombinerki.", "Lena miała taśmę.", "Lena nie była w pracowni technicznej.", "Hania nie była w auli."], "q": "Ustal, kto miał śrubokręt i gdzie ta osoba była.", "sol": "Sprawcą jest Hania: miała śrubokręt i była w pracowni technicznej.", "full": "Hania – śrubokręt – pracownia techniczna; Wojtek – kombinerki – aula; Lena – taśma – hol"}, "first": {"title": "Pomieszane klasówki", "intro": "Ktoś zszył razem kartki z klasówek i pomieszał je. Na kartkach są ślady zszywacza.", "people": ["Tomek", "Ewa", "Marek"], "places": ["biblioteka", "pokój nauczycielski", "świetlica"], "items": ["zszywacz", "dziurkacz", "linijka"], "clues": ["Marek miał zszywacz.", "Osoba, która miała linijkę, była w pokoju nauczycielskim.", "Osoba, która miała dziurkacz, nie była w bibliotece.", "Tomek był w pokoju nauczycielskim."], "q": "Ustal, kto miał zszywacz i gdzie ta osoba była.", "sol": "Sprawcą jest Marek: miał zszywacz i był w bibliotece.", "full": "Tomek – linijka – pokój nauczycielski; Ewa – dziurkacz – świetlica; Marek – zszywacz – biblioteka"}, "elim": {"title": "Otwarta szafka z piłkami", "intro": "Szafka z piłkami została otwarta bez klucza. Zamek ma ślady po spinaczu.", "people": ["Alek", "Basia", "Czarek", "Dagmara"], "places": ["sala gimnastyczna", "szatnia", "boisko", "magazyn"], "items": ["spinacz", "gumka", "sznurek", "ołówek"], "clues": ["Alek nie był w szatni.", "Basia nie miała spinacza.", "Dagmara nie miała spinacza.", "Alek nie był w magazynie.", "Czarek miał sznurek.", "Alek nie był w sali gimnastycznej."], "q": "Ustal, kto miał spinacz i gdzie ta osoba była.", "sol": "Sprawcą jest Alek: miał spinacz i był na boisku.", "full": "Alek – spinacz – boisko; Basia – gumka – sala gimnastyczna; Czarek – sznurek – szatnia; Dagmara – ołówek – magazyn"}, "chain": {"title": "Wąsy na zdjęciu", "intro": "Ktoś dorysował wąsy na zdjęciu dyrektora w gablocie. Linie są zielone, więc użyto zielonego flamastra.", "people": ["Emil", "Fela", "Gustaw", "Hela"], "places": ["hol", "sekretariat", "korytarz", "szatnia"], "items": ["zielony flamaster", "czerwony flamaster", "niebieski flamaster", "czarny flamaster"], "clues": ["Osoba, która miała zielony flamaster, nie była w holu.", "Osoba, która miała niebieski flamaster, była na korytarzu.", "Fela miała zielony flamaster.", "Osoba, która miała czarny flamaster, była w sekretariacie.", "Osoba, która miała czerwony flamaster, była w holu."], "q": "Ustal, kto miał zielony flamaster i gdzie ta osoba była.", "sol": "Sprawcą jest Fela: miała zielony flamaster i była w szatni.", "full": "Emil – niebieski flamaster – korytarz; Fela – zielony flamaster – szatnia; Gustaw – czarny flamaster – sekretariat; Hela – czerwony flamaster – hol"}, "four": {"title": "Zniknęła kreda", "intro": "Z wszystkich tablic zniknęła kreda. Na podłodze został biały pył, który mógł zostać na rękawiczce.", "people": ["Ignacy", "Julia", "Karol", "Natalia"], "places": ["klasa", "korytarz", "szatnia", "aula"], "items": ["rękawiczka", "szalik", "czapka", "kurtka"], "clues": ["Natalia miała czapkę.", "Osoba, która miała kurtkę, nie była w auli.", "Julia nie miała szalika.", "Karol nie był w szatni.", "Julia była w auli."], "q": "Ustal, kto miał rękawiczkę i gdzie ta osoba była.", "sol": "Sprawcą jest Julia: miała rękawiczkę i była w auli.", "full": "Ignacy – kurtka – szatnia; Julia – rękawiczka – aula; Karol – szalik – korytarz; Natalia – czapka – klasa"}, "contra": {"title": "Sok na komputerze", "intro": "Ktoś wylał sok na klawiaturę w pracowni komputerowej i uciekł. Przy klawiaturze leżał kubek.", "people": ["Oskar", "Pola", "Rafał", "Sara"], "places": ["pracownia komputerowa", "stołówka", "świetlica", "hol"], "items": ["kubek", "butelka", "karton soku", "słoik"], "clues": ["Pola nie była w holu.", "Pola nie miała kubka.", "Pola nie była na stołówce.", "Pola nie była w świetlicy.", "Osoba, która miała słoik, była w holu.", "Rafał nie był na stołówce.", "Rafał nie miał słoika.", "Osoba, która miała kubek, nie była na stołówce."], "q": "Ustal, kto miał kubek i gdzie ta osoba była.", "sol": "Sprawcą jest Rafał: miał kubek i był w świetlicy.", "full": "Oskar – słoik – hol; Pola – butelka – pracownia komputerowa; Rafał – kubek – świetlica; Sara – karton soku – stołówka"}, "proofs": {"title": "Zniknął klucz", "intro": "Zamek w sali muzycznej został otwarty bez klucza. Ślady wskazują na wsuwkę do włosów.", "people": ["Tola", "Tymon", "Ula", "Waldek"], "places": ["sala muzyczna", "zaplecze", "korytarz", "portiernia"], "items": ["wsuwka", "spinka", "patyczek", "zakładka"], "clues": ["Osoba, która miała zakładkę, była w sali muzycznej.", "Osoba, która miała spinkę, była na korytarzu.", "Ula miała zakładkę.", "Tola miała patyczek.", "Tymon był na zapleczu."], "q": "Ustal, kto miał wsuwkę i gdzie ta osoba była.", "sol": "Sprawcą jest Tymon: miał wsuwkę i był na zapleczu.", "full": "Tola – patyczek – portiernia; Tymon – wsuwka – zaplecze; Ula – zakładka – sala muzyczna; Waldek – spinka – korytarz"}, "five": {"title": "Pusta gablota", "intro": "Ze szkolnej gabloty zniknął puchar. Zamek otwarto kluczem, który ktoś zostawił w szufladzie.", "people": ["Franek", "Gosia", "Henryk", "Iga", "Jan"], "places": ["aula", "szatnia", "sekretariat", "hol", "boisko"], "items": ["klucz", "latarka", "rękawiczki", "torba", "kapelusz"], "clues": ["Iga nie była w sekretariacie.", "Henryk miał rękawiczki.", "Iga nie była w szatni.", "Osoba, która miała rękawiczki, była na boisku.", "Franek nie był w szatni.", "Franek nie był w sekretariacie.", "Iga nie miała klucza.", "Osoba, która miała klucz, była w holu."], "q": "Ustal, kto miał klucz i gdzie ta osoba była.", "sol": "Sprawcą jest Franek: miał klucz i był w holu.", "full": "Franek – klucz – hol; Gosia – torba – szatnia; Henryk – rękawiczki – boisko; Iga – kapelusz – aula; Jan – latarka – sekretariat"}, "liar": {"title": "Pomalowana mapa", "intro": "Ktoś pomalował mapę świata flamastrem. Dokładnie jedna osoba kłamie i jest nią sprawca, czyli osoba, która miała flamaster.", "people": ["Adam", "Bianka", "Cezary", "Daria"], "places": ["gabinet geografii", "biblioteka", "hol", "szatnia"], "items": ["flamaster", "kredka", "ołówek", "długopis"], "clues": ["Adam: „Osoba, która miała flamaster, była w holu.”", "Bianka: „Daria była w szatni.”", "Cezary: „Osoba, która miała flamaster, była w holu.”", "Daria: „Adam był w bibliotece.”"], "q": "Ustal, kto miał flamaster i gdzie ta osoba była.", "sol": "Sprawcą jest Bianka: miała flamaster i była w holu.", "full": "Adam – kredka – biblioteka; Bianka – flamaster – hol; Cezary – długopis – szatnia; Daria – ołówek – gabinet geografii"}};
+  var CRIME=[
+    N('file',C,160,'main',['Teczka','śledztwa'],'k_file',[],'Poznajesz teczkę śledztwa: listę podejrzanych, miejsc i przedmiotów. Każdy podejrzany miał inny przedmiot i był w innym miejscu.','Rozwiąż zagadkę rozgrzewkową i wyjaśnij, skąd wiesz, kto jest sprawcą.',PZ.file),
+    N('clues',C,270,'main',['Czytanie','wskazówek'],'k_clues',['file'],'Czytasz wskazówki uważnie, słowo po słowie. Odróżniasz „był” od „nie był” i zauważasz, co dokładnie mówi zdanie.','Rozwiąż zagadkę i zapisz, co daje każda wskazówka.',PZ.clues),
+    N('grid',C,380,'main',['Tabela','dedukcji'],'k_grid',['clues'],'Tabela dedukcji: wiersze i kolumny z podejrzanymi, miejscami i przedmiotami. Wpisujesz ✓ (na pewno) i ✗ (na pewno nie).','Rozwiąż zagadkę za pomocą tabeli, bez zgadywania.',PZ.grid),
+    N('alibi',L,380,'small',['Alibi'],'k_alibi',['grid'],'Alibi to dowód, że ktoś był gdzie indziej. Wykluczasz podejrzanych na podstawie tego, gdzie na pewno nie mogli być.','Rozwiąż zagadkę, wykluczając podejrzanych alibi.',PZ.alibi),
+    N('first',C,500,'mile',['Pierwsza','zagadka'],'k_first',['grid'],'Pierwsza pełna zagadka w stylu Murdle: kto, czym i gdzie. Łączysz kilka wskazówek naraz.','Rozwiąż zagadkę samodzielnie i uzasadnij odpowiedź.',PZ.first),
+    N('elim',L,500,'small',['Metoda','eliminacji'],'k_elim',['first'],'Skreślasz wszystko, co niemożliwe, aż zostanie jedna odpowiedź. Przy czterech podejrzanych tabela jest większa.','Rozwiąż zagadkę 4×4 metodą eliminacji.',PZ.elim),
+    N('chain',R,500,'small',['Łańcuch','wniosków'],'k_chain',['first'],'Z jednej wskazówki wynika druga, a z niej trzecia. Zapisujesz, skąd wynika każdy wniosek.','Rozwiąż zagadkę i zapisz łańcuch kroków.',PZ.chain),
+    N('four',C,620,'main',['Zagadki','4×4'],'k_four',['first'],'Zagadki z czterema podejrzanymi, czterema miejscami i czterema przedmiotami.','Rozwiąż zagadkę bez podpowiedzi.',PZ.four),
+    N('contra',L,620,'small',['Dowód','nie wprost'],'k_contra',['four'],'Zakładasz, że ktoś jest sprawcą, i sprawdzasz, czy prowadzi to do sprzeczności. Jeśli tak, to nie on.','Rozwiąż zagadkę, wykluczając dwie osoby dowodem nie wprost.',PZ.contra),
+    N('proofs',R,620,'small',['Dowody','i ślady'],'k_proofs',['four'],'Wskazówki o tym, kto miał dany przedmiot i gdzie był, łączysz w jedno rozumowanie.','Rozwiąż zagadkę i wskaż wskazówki, które okazały się kluczowe.',PZ.proofs),
+    N('liar',C,730,'main',['Zagadki','z kłamcą'],'k_liar',['four'],'Każdy podejrzany składa zeznanie, ale jedna osoba kłamie. Sprawdzasz, czyje zdanie nie pasuje do pozostałych.','Rozwiąż zagadkę i wyjaśnij, skąd wiesz, kto kłamie.',PZ.liar),
+    N('five',C,840,'main',['Zagadki','5×5'],'k_five',['liar'],'Pięciu podejrzanych, pięć miejsc i pięć przedmiotów. Potrzebujesz tabeli i cierpliwości.','Rozwiąż zagadkę i zapisz kolejne wnioski.',PZ.five),
+    N('own',C,960,'mile',['Własna','zagadka'],'k_own',['five'],'Ostatni krok: tworzysz własną zagadkę. Wymyślasz podejrzanych, miejsca, przedmioty i wskazówki tak, by miała jedno rozwiązanie, a potem sprawdzasz ją na koledze z klasy.','Twoja zagadka ma jedno rozwiązanie i inny uczeń ją rozwiązał.')
+  ];
+  var CIPHER=[
+    N('cz1',C,160,'main',['Szyfr cyfrowy','(A = 1)'],'cp_num',[],'Najprostszy szyfr: każdej literze odpowiada numer w alfabecie (A=1, B=2, … Z=26). Szyfrujesz i odczytujesz krótkie wiadomości.','Zaszyfruj swoje imię i odczytaj zaszyfrowane zdanie od nauczyciela.'),
+    N('cz_m',L,160,'small',['Alfabet','Morse’a'],'cp_morse',['cz1'],'Alfabet Morse’a zapisuje litery za pomocą kropek i kresek. Poznajesz zasadę kodowania i odczytujesz krótkie słowa.','Zapisz swoje imię alfabetem Morse’a i odczytaj 3 słowa.'),
+    N('cz2',C,270,'main',['Szyfr','Cezara'],'cp_caesar',['cz1'],'Każdą literę przesuwasz o stałą liczbę miejsc w alfabecie (np. o 3: A→D). Klucz to liczba przesunięcia.','Zaszyfruj zdanie z kluczem 3 i odczytaj zdanie z innym kluczem.'),
+    N('cz_p',R,270,'small',['Szyfr','świnkowy'],'cp_pigpen',['cz2'],'Szyfr świnkowy (pigpen) zastępuje litery znakami wziętymi z kratek i kropek. Nie ma w nim liczb, tylko rysunki.','Zaszyfruj i odczytaj krótką wiadomość znakami świnkowymi.'),
+    N('cz3',C,380,'main',['Szyfr Atbash','(lustro)'],'cp_atbash',['cz2'],'Alfabet odwracasz jak w lustrze: A↔Z, B↔Y, C↔X. Szyfr nie ma klucza, więc łatwo go złamać, jeśli się go zna.','Zaszyfruj 3 słowa szyfrem Atbash i odczytaj wiadomość kolegi.'),
+    N('cz_k',L,380,'small',['Kwadrat','Polibiusza'],'cp_poly',['cz3'],'Litery wpisujesz w kwadrat 5×5, a każdą z nich zastępujesz parą liczb: numerem rzędu i kolumny.','Zaszyfruj zdanie kwadratem Polibiusza i odczytaj odpowiedź.'),
+    N('cz4',C,500,'main',['Szyfr','płotkowy'],'cp_rail',['cz3'],'Pierwszy szyfr przestawieniowy: litery nie są zmieniane, tylko ustawiane w zygzak i odczytywane rzędami. Zmienia się kolejność liter.','Zaszyfruj zdanie szyfrem płotkowym na 3 szyny i odczytaj cudzą wiadomość.'),
+    N('cz5',C,620,'main',['Szyfr','Vigenère’a'],'cp_vig',['cz4'],'Przesunięcia zależą od słowa klucza, więc każda litera jest przesuwana inaczej. To szyfr, który przez wieki uchodził za nie do złamania.','Zaszyfruj i odczytaj zdanie z kluczem „SZKOŁA”.'),
+    N('cz6',C,730,'main',['Łamanie','szyfrów'],'cp_freq',['cz5'],'Łamiesz szyfr bez klucza. Liczysz, które litery występują najczęściej, i szukasz powtarzających się wzorów oraz wyrazów.','Złam bez klucza zaszyfrowaną wiadomość od nauczyciela (szyfr Cezara albo podstawieniowy).'),
+    N('cz7',C,850,'mile',['Własny','szyfr'],'cp_own',['cz6'],'Ostatni krok: wymyślasz własny szyfr, piszesz do niego instrukcję i sprawdzasz, czy ktoś z klasy zdoła go złamać.','Własny szyfr z instrukcją, przetestowany przez dwóch kolegów.')
+  ];
+  var TILES=[
+    {id:'sudoku',name:'Sudoku',icon:'t_sudoku',col:'#4cc9f0',mode:'level',levels:['4×4','6×6','9×9 łatwe','9×9 średnie','9×9 trudne','9×9 bardzo trudne'],desc:'Wypełniasz diagram cyframi tak, by żadna się nie powtarzała w rzędzie, kolumnie i polu. Rozwój to najwyższy poziom, który umiesz rozwiązać samodzielnie.',unit:'Poziom'},
+    {id:'smart',name:'Smart Games',icon:'t_smart',col:'#ff9f1c',mode:'level',levels:['Starter','Junior','Mistrz','Ekspert'],desc:'Gry logiczne z serii Smart Games, w których rozwiązujesz kolejne wyzwania z książeczki. Rozwój to najtrudniejszy poziom, który ukończyłeś.',unit:'Poziom'},
+    {id:'mensa',name:'Mensa dla dzieci',icon:'t_mensa',col:'#e56bff',mode:'count',unit:'Rozwiązane zadania',add:'+1 zadanie',th:[{n:10,name:'Początkujący'},{n:30,name:'Rozwiązujący'},{n:60,name:'Łamacz zagadek'},{n:100,name:'Mistrz łamigłówek'}],desc:'Zadania z książki Mensa dla dzieci: układanki, ciągi, wzory i rozumowanie. Rozwój to liczba rozwiązanych zadań.'},
+    {id:'quarto',name:'Quarto',icon:'t_quarto',col:'#2ec4b6',mode:'count',unit:'Rozegrane partie',add:'+1 partia',th:[{n:5,name:'Gracz'},{n:15,name:'Strateg'},{n:30,name:'Taktyk'},{n:50,name:'Mistrz Quarto'}],desc:'Gra planszowa, w której przeciwnik wybiera Ci pionek, a Ty go stawiasz. Wygrywa ten, kto ułoży rząd czterech pionków o wspólnej cesze. Rozwój to liczba rozegranych partii.'},
+    {id:'pent',name:'Pentomino',icon:'t_pent',col:'#a3e635',mode:'level',levels:['Poznaj 12 klocków','Prostokąt 6×10','Prostokąt 5×12','Prostokąt 4×15','Prostokąt 3×20'],desc:'Układasz 12 klocków z pięciu kwadratów tak, by wypełnić prostokąt. Rozwój to najtrudniejszy prostokąt, który udało Ci się ułożyć.',unit:'Poziom'},
+    {id:'quor',name:'Quoridor',icon:'t_quor',col:'#ff5a7a',mode:'count',unit:'Rozegrane partie',add:'+1 partia',th:[{n:5,name:'Początkujący'},{n:15,name:'Gracz'},{n:30,name:'Strateg'},{n:50,name:'Mistrz labiryntu'}],desc:'Gra, w której przesuwasz pionek na drugą stronę planszy i budujesz przeszkody, by spowolnić przeciwnika. Rozwój to liczba rozegranych partii.'}
+  ];
+  var PATHS={
+    push:{key:'push',name:'Pompki',nodes:PUSH,dy:-90,h:960},
+    pull:{key:'pull',name:'Podciąganie',nodes:PULL,dy:-90,h:960},
+    legs:{key:'legs',name:'Przysiady',nodes:LEGS,dy:-90,h:960},
+    core:{key:'core',name:'Brzuch i tułów',nodes:CORE,dy:-90,h:960},
+    chess:{key:'chess',name:'Szachy',nodes:CHESS,dy:-200,h:960,games:true},
+    scratch:{key:'scratch',name:'Scratch',nodes:SCRATCH,w:520,minw:380,h:1040,
+      heads:[{x:58,label:'KOSTIUMY',sub:'GRAFIKA',col:'gfx'},{x:141,label:'EDYTOR',sub:'GRAFIKA',col:'gfx'},{x:276,label:'KODOWANIE',col:'code'},{x:411,label:'DŹWIĘK',col:'snd'}]},
+    crime:{key:'crime',name:'Kryminalistyka',tab:'Kryminalistyka',nodes:CRIME,dy:-90,h:960},
+    cipher:{key:'cipher',name:'Szyfry',tab:'Szyfry',nodes:CIPHER,dy:-90,h:840},
+    puzzles:{key:'puzzles',name:'Gry logiczne',tab:'Gry',nodes:[],tiles:TILES}
+  };
+  var DOMAINS={
+    push:{c:'#ff5a4d',name:'Push',short:'Push',icon:'full',paths:['push']},
+    pull:{c:'#4da3ff',name:'Pull',short:'Pull',icon:'pull',paths:['pull']},
+    legs:{c:'#3ddc84',name:'Legs',short:'Legs',icon:'legs',paths:['legs']},
+    core:{c:'#ffc233',name:'Core',short:'Core',icon:'core',paths:['core']},
+    strategy:{c:'#b48cff',name:'Strategia',short:'Strategia',icon:'ch_end',paths:['chess']},
+    programming:{c:'#4c97ff',name:'Programowanie',short:'Programowanie',icon:'code',paths:['scratch']},
+    crime:{c:'#2ec4b6',name:'Łamigłówki',short:'Łamigłówki',icon:'k_clues',paths:['crime','cipher','puzzles']}
+  };
+  var SUBJECTS={
+    gym:{name:'Gimnastyka',sub:'Sekcje ciała',icon:'full',parts:['push','pull','legs','core'],th:{m:'#ff7a45',m2:'#ffc3a3',a:'#ffd166',ad:'#8a4f2c'}},
+    logic:{name:'Logika',sub:'Dziedziny',icon:'logic',parts:['strategy','programming','crime'],th:{m:'#a77bff',m2:'#d8c4ff',a:'#7dd3ff',ad:'#54419a'}}
+  };
+  var SZ={main:26,mile:32,small:19};
+
+  /* ---------- postępy ---------- */
+  var SK='uczen-gimnastyka-v1', prog={};
+  function demoSeed(){
+    var d={};
+    ['legs','core'].forEach(function(k){ d[k]={}; PATHS[k].nodes.forEach(function(n){ d[k][n.id]=true; }); });
+    d.scratch={}; ['g_char','g_cost','g_lvl','g_edit','c_first','c_move','c_loop','c_nest','c_cond','c_ops','s_play','s_rec','s_mus','s_vol'].forEach(function(id){ d.scratch[id]=true; });
+    d.crime={}; var nd=PATHS.crime.nodes, need=Math.ceil(nd.length/2), cnt=0, ch=true;
+    while(ch&&cnt<need){ ch=false; nd.forEach(function(n){ if(cnt<need&&!d.crime[n.id]&&n.req.every(function(r){return d.crime[r];})){ d.crime[n.id]=true; cnt++; ch=true; } }); }
+    return d;
+  }
+  var stored=null; try{ stored=localStorage.getItem(SK); }catch(e){}
+  if(stored===null){ prog=demoSeed(); try{ localStorage.setItem(SK,JSON.stringify(prog)); }catch(e){} }
+  else try{ var s=JSON.parse(stored); if(s&&typeof s==='object') prog=Object.assign(prog,s); }catch(e){}
+  Object.keys(PATHS).forEach(function(k){ if(!prog[k]||typeof prog[k]!=='object') prog[k]={}; });
+  function persist(){ try{localStorage.setItem(SK,JSON.stringify(prog));}catch(e){} }
+  function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('show');},2200); }
+
+  var subj='gym', dom='push', cur='push', recenter=true, intro=true;
+  function part(k){ return PATHS[k]; }
+  function nodeById(p,id){ return p.nodes.find(function(n){return n.id===id;}); }
+  function isDone(k,id){ return !!(prog[k]&&prog[k][id]); }
+  function games(k){ var g=(prog[k]&&prog[k].__g)||{}; return {a:g.a||0,b:g.b||0,c:g.c||0,t:g.t||0}; }
+  function gateInfo(k,n){
+    if(!n.gate) return {ok:true};
+    var g=games(k), tot=g.a+g.b+g.c;
+    if(n.gate==='school') return {ok:g.a>=1&&g.b>=1&&g.c>=1&&tot>=4,
+      msg:'Do turnieju szkolnego rozegraj min. 4 partie, w tym po min. 1 w każdym typie (10 min + 5 s, 60 min, blitz). Masz: '+tot+' / 4 (10+5: '+g.a+', 60 min: '+g.b+', blitz: '+g.c+').'};
+    var all=tot+g.t;
+    return {ok:g.a>=3&&g.b>=3&&g.c>=3&&all>=10,
+      msg:'Do turnieju rankingowego rozegraj min. 10 partii, w tym po min. 3 w każdym typie. Partie z turnieju szkolnego się liczą. Masz: '+all+' / 10 (10+5: '+g.a+'/3, 60 min: '+g.b+'/3, blitz: '+g.c+'/3).'};
+  }
+  function tileMax(t){ return t.mode==='level'?t.levels.length:t.th[t.th.length-1].n; }
+  function tileDone(k,t){ return ((prog[k]&&prog[k][t.id])||0)>=tileMax(t); }
+  function stateOf(k,n){
+    if(isDone(k,n.id)) return 'mastered';
+    if(n.gate&&!gateInfo(k,n).ok) return 'locked';
+    return (n.any?n.req.some(function(r){return isDone(k,r);}):n.req.every(function(r){return isDone(k,r);}))?'available':'locked';
+  }
+  function counts(k){ var p=part(k); if(p.tiles) return {d:p.tiles.filter(function(t){return tileDone(k,t);}).length,t:p.tiles.length}; var d=p.nodes.filter(function(n){return isDone(k,n.id);}).length; return {d:d,t:p.nodes.length}; }
+  function domCounts(dk){ var d=0,t=0; DOMAINS[dk].paths.forEach(function(k){ var c=counts(k); d+=c.d; t+=c.t; }); return {d:d,t:t}; }
+  function totals(sk){ var d=0,t=0; SUBJECTS[sk].parts.forEach(function(dk){ var c=domCounts(dk); d+=c.d; t+=c.t; }); return {d:d,t:t}; }
+  function themeStyle(t){ return '--m:'+t.m+';--m2:'+t.m2+';--a:'+t.a+';--ad:'+t.ad; }
+
+  /* ---------- menu przedmiotów ---------- */
+  function renderMenu(){
+    function live(key){
+      var s=SUBJECTS[key], c=totals(key);
+      return '<button class="tile live" data-go="'+key+'" style="'+themeStyle(s.th)+'">'+icon(s.icon)+'<div style="flex:1"><div class="nm">'+s.name+'</div>'+
+        '<div class="st">Opanowane: '+c.d+' / '+c.t+'</div><div class="bar"><i style="width:'+Math.round(c.d/c.t*100)+'%"></i></div></div></button>';
+    }
+    function off(name,ic,th){ return '<div class="tile off" aria-disabled="true" style="'+themeStyle(th)+'">'+icon(ic)+'<div><div class="nm">'+name+'</div><div class="st">Wkrótce</div></div>'+icon('lock','lockic')+'</div>'; }
+    $('tiles').innerHTML=live('gym')+live('logic')+off('Wiedza','know',{m:'#4da3ff',m2:'#b3d6ff',a:'#7df0ff',ad:'#31669a'});
+  }
+  $('tiles').addEventListener('click',function(e){
+    var b=e.target.closest('[data-go]'); if(!b) return;
+    subj=b.dataset.go; dom=SUBJECTS[subj].parts[0]; cur=DOMAINS[dom].paths[0]; recenter=true; intro=true; show('vSubject');
+  });
+  function show(id){
+    ['vMenu','vSubject'].forEach(function(v){$(v).classList.toggle('on',v===id);});
+    window.scrollTo(0,0);
+    if(id==='vMenu'){ document.body.removeAttribute('data-th'); renderMenu(); } else renderSubject();
+  }
+  $('backBtn').onclick=function(){ closeSheet(); show('vMenu'); };
+
+  /* ---------- widok przedmiotu ---------- */
+  function renderSide(){
+    $('side').innerHTML=SUBJECTS[subj].parts.map(function(dk){
+      var d=DOMAINS[dk], c=domCounts(dk), fs=d.short.length>11?'.56rem':(d.short.length>8?'.62rem':'.68rem');
+      return '<button data-p="'+dk+'" class="'+(dk===dom?'on':'')+'" style="--sc:'+d.c+'" aria-label="'+d.name+'">'+icon(d.icon)+'<b style="font-size:'+fs+'">'+d.short+'</b><span>'+c.d+'/'+c.t+'</span></button>';
+    }).join('');
+  }
+  $('pathbar').addEventListener('click',function(e){ var b=e.target.closest('button[data-path]'); if(!b||b.dataset.path===cur) return; cur=b.dataset.path; recenter=true; intro=true; closeSheet(); renderSubject(); });
+  $('side').addEventListener('click',function(e){ var b=e.target.closest('button[data-p]'); if(!b) return; dom=b.dataset.p; cur=DOMAINS[dom].paths[0]; recenter=true; intro=true; closeSheet(); renderSubject(); window.scrollTo(0,0); });
+
+  function octagon(cx,cy,a){
+    var R=a/Math.cos(Math.PI/8), pts=[];
+    for(var i=0;i<8;i++){ var ang=Math.PI/8+i*Math.PI/4; pts.push((cx+R*Math.cos(ang)).toFixed(1)+','+(cy+R*Math.sin(ang)).toFixed(1)); }
+    return pts.join(' ');
+  }
+  function renderTree(){
+    if(part(cur).tiles) return renderTiles();
+    var p=part(cur), dy=p.dy||0, W=p.w||320, H=p.h;
+    var all=p.nodes.map(function(n){ return Object.assign({},n,{y:n.y+dy}); });
+    var pos={}; all.forEach(function(n){pos[n.id]=n;});
+    var out='<svg class="tree" viewBox="0 0 '+W+' '+H+'" style="min-width:'+(p.minw||W)+'px;max-width:'+Math.round(W*(W>400?1.25:1.5))+'px" role="group" aria-label="Ścieżka rozwoju: '+p.name+'">';
+    (p.heads||[]).forEach(function(hd){
+      out+='<g style="'+colStyle(hd.col)+'">'+(hd.sub?'<text class="colsub" x="'+hd.x+'" y="11" text-anchor="middle">'+hd.sub+'</text>':'')+'<text class="colhd" x="'+hd.x+'" y="'+(hd.sub?27:24)+'" text-anchor="middle">'+hd.label+'</text><rect class="colbar" x="'+(hd.x-36)+'" y="'+(hd.sub?34:31)+'" width="72" height="3"/></g>';
+    });
+    // kable
+    all.forEach(function(n){
+      n.req.forEach(function(r){
+        var a=pos[r]; if(!a) return;
+        var ea=SZ[a.t], eb=SZ[n.t], st=stateOf(cur,n), d='';
+        var cls=st==='mastered'?'au':(isDone(cur,r)?'cy':'dim');
+        [-3,0,3].forEach(function(o){
+          if(a.x===n.x) d+='<path class="ln '+cls+'" d="M'+(a.x+o)+' '+(a.y+ea)+'V'+(n.y-eb)+'"/>';
+          else if(a.y===n.y){ var dir=n.x>a.x?1:-1; d+='<path class="ln '+cls+'" d="M'+(a.x+dir*ea)+' '+(a.y+o)+'H'+(n.x-dir*eb)+'"/>'; }
+          else{ var jy=n.y-eb-38; d+='<path class="ln '+cls+'" d="M'+(a.x+o)+' '+(a.y+ea)+'V'+(jy+o)+'H'+(n.x+o)+'V'+(n.y-eb)+'"/>'; }
+        });
+        out+='<g class="cab" data-a="'+r+'" data-b="'+n.id+'" style="'+colStyle(n.col||a.col)+'">'+d+'</g>';
+      });
+    });
+    // węzły
+    all.forEach(function(n){
+      var st=stateOf(cur,n), a=SZ[n.t], shape;
+      if(n.t==='small'){
+        var x0=n.x-a,y0=n.y-a,s=a*2,c=8,i=4;
+        shape='<path class="sh" d="M'+(x0+c)+' '+y0+'H'+(x0+s)+'V'+(y0+s)+'H'+x0+'V'+(y0+c)+'Z"/>'+
+              '<path class="sh2" d="M'+(x0+c+i)+' '+(y0+i)+'H'+(x0+s-i)+'V'+(y0+s-i)+'H'+(x0+i)+'V'+(y0+c+i)+'Z"/>';
+      }else{
+        shape='<polygon class="sh" points="'+octagon(n.x,n.y,a)+'"/><polygon class="sh2" points="'+octagon(n.x,n.y,a-5)+'"/>';
+      }
+      var sc=(n.t==='small'?0.78:(n.t==='main'?0.95:1.1)), ts=40*sc;
+      var ic='<g class="ic" transform="translate('+(n.x-ts/2).toFixed(1)+' '+(n.y-ts/2).toFixed(1)+') scale('+sc+')">'+ICONS[n.icon]+'</g>';
+      var ly=n.y+a+13;
+      var lab='<text class="lb" text-anchor="middle" x="'+n.x+'" y="'+ly+'">'+n.label.map(function(l,i){return '<tspan x="'+n.x+'" dy="'+(i?11:0)+'">'+l+'</tspan>';}).join('')+'</text>';
+      out+='<g class="node '+st+'" data-id="'+n.id+'" style="'+colStyle(n.col)+'" tabindex="0" role="button" aria-label="'+n.label.join(' ')+' ('+({mastered:'opanowane',available:'dostępne',locked:'zablokowane'})[st]+')"><g class="bd">'+shape+ic+'</g>'+lab+'</g>';
+    });
+    var stage=$('stage'), sl=stage.scrollLeft;
+    stage.innerHTML=(p.games?gamesPanel():'')+out+'</svg>';
+    if(intro){ intro=false;
+      if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){
+        var ymin=Math.min.apply(null,all.map(function(n){return n.y;})), STEP=1.5;
+        var dl={}; all.forEach(function(n){ dl[n.id]=Math.round((n.y-ymin)*STEP+60); });
+        stage.querySelectorAll('.node').forEach(function(e){ e.style.setProperty('--id',dl[e.dataset.id]+'ms'); e.classList.add('in'); });
+        stage.querySelectorAll('.cab').forEach(function(e){ e.style.setProperty('--id',Math.max(0,dl[e.dataset.b]-90)+'ms'); e.classList.add('in'); });
+      }
+    }
+    if(recenter){ stage.scrollLeft=Math.max(0,(stage.scrollWidth-stage.clientWidth)/2); recenter=false; } else stage.scrollLeft=sl;
+  }
+  function renderSubject(){
+    document.body.setAttribute('data-th',dom);
+    $('subTitle').textContent=SUBJECTS[subj].name; $('subSub').textContent=SUBJECTS[subj].sub;
+    renderSide();
+    var p=part(cur), c=counts(cur);
+    var ds=DOMAINS[dom].paths, tabs='';
+    if(ds.length>1) tabs='<div class="pb-tabs" role="tablist">'+ds.map(function(k){ return '<button type="button" role="tab" data-path="'+k+'" class="'+(k===cur?'on':'')+'" aria-selected="'+(k===cur)+'">'+(PATHS[k].tab||PATHS[k].name)+'</button>'; }).join('')+'</div>';
+    $('pathbar').innerHTML='<div><span class="pb-k">Ścieżka rozwoju</span><span class="pb-n">'+p.name+'</span></div><div class="pb-c"><b>'+c.d+'</b> / '+c.t+'</div>'+tabs;
+    renderTree();
+    $('cDone').textContent=c.d; $('cAll').textContent=c.t;
+    $('hintTxt').textContent=p.tiles?'Zwiększaj poziom lub liczbę rozegranych gier przyciskami przy kafelku':((p.games?'Zapisuj rozegrane partie w dzienniku, aby odblokować turnieje. ':'')+(p.w>400&&p.minw!==undefined&&p.minw<p.w?'Przesuń w bok, jeśli ścieżki nie mieszczą się na ekranie. ':(p.w>400?'Przesuń w bok, aby zobaczyć wszystkie ścieżki. ':''))+'Dotknij umiejętności, aby zobaczyć szczegóły');
+  }
+  $('stage').addEventListener('click',function(e){ var g=e.target.closest('.node[data-id]'); if(g) openSheet(g.dataset.id); });
+  $('stage').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ var g=e.target.closest('.node[data-id]'); if(g){ e.preventDefault(); openSheet(g.dataset.id);} } });
+
+  /* ---------- panel szczegółów ---------- */
+  function puzzleHtml(z){
+    return '<div class="pz"><h4>Zagadka: '+z.title+'</h4><p>'+z.intro+'</p>'+
+      '<p class="lst"><b>Podejrzani:</b> '+z.people.join(', ')+'</p>'+
+      '<p class="lst"><b>Miejsca:</b> '+z.places.join(', ')+'</p>'+
+      '<p class="lst"><b>Przedmioty:</b> '+z.items.join(', ')+'</p>'+
+      '<p class="lst">Każdy podejrzany miał inny przedmiot i był w innym miejscu.</p>'+
+      '<ol>'+z.clues.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ol>'+
+      '<p class="q">'+z.q+'</p>'+
+      '<button type="button" class="pzbtn" id="pzBtn">Pokaż rozwiązanie</button>'+
+      '<div id="pzSol" hidden><p><b>'+z.sol+'</b></p><p class="lst">Pełny układ: '+z.full+'</p></div></div>';
+  }
+  var openId=null;
+  function openSheet(id){
+    var p=part(cur), n=nodeById(p,id), st=stateOf(cur,n); openId=id;
+    $('sheet').setAttribute('style',colStyle(n.col||''));
+    var chip={mastered:'Opanowane',available:'Dostępne do zdobycia',locked:'Zablokowane'}[st];
+    var need='';
+    if(st==='locked'){
+      var miss=n.req.filter(function(r){return !isDone(cur,r);}).map(function(r){return nodeById(p,r).label.join(' ');});
+      var gi=gateInfo(cur,n), nt=[];
+      if(!(n.any?n.req.some(function(r){return isDone(cur,r);}):!miss.length)) nt.push('Najpierw opanuj'+(n.any?' jedno z: ':': ')+miss.join(n.any?' lub ':', ')+'.');
+      if(!gi.ok) nt.push(gi.msg);
+      need=nt.map(function(t){return '<p class="need">'+t+'</p>';}).join('');
+    }
+    var act='<button id="shClose">Zamknij</button>';
+    if(st==='available') act+='<button class="main" id="shDo">Opanowane ✓</button>';
+    if(st==='mastered') act+='<button class="undo" id="shUndo">Cofnij</button>';
+    $('sheet').innerHTML='<div class="hd">'+icon(n.icon)+'<div><h3>'+n.label.join(' ')+'</h3><span class="chip '+st+'">'+chip+'</span>'+(n.t==='small'?'<span class="chip opt">Dodatkowa</span>':'')+'</div></div>'+
+      '<p>'+n.desc+'</p><p class="goal"><b>Cel do zaliczenia</b>'+n.goal+'</p>'+(n.puzzle?puzzleHtml(n.puzzle):'')+need+'<div class="acts">'+act+'</div>';
+    $('sheet').scrollTop=0;
+    $('shade').classList.add('on'); $('sheet').classList.add('on');
+    $('shClose').onclick=closeSheet;
+    if($('pzBtn')) $('pzBtn').onclick=function(){ var s=$('pzSol'); s.hidden=!s.hidden; this.textContent=s.hidden?'Pokaż rozwiązanie':'Ukryj rozwiązanie'; };
+    if($('shDo')) $('shDo').onclick=function(){ prog[cur][id]=true; persist(); closeSheet(); renderSubject(); celebrate(id); toast('Opanowane: '+n.label.join(' ')); };
+    if($('shUndo')) $('shUndo').onclick=function(){
+      var p2=part(cur), dep=p2.nodes.filter(function(x){ if(x.req.indexOf(id)<0||!isDone(cur,x.id)) return false; return !(x.any&&x.req.some(function(r){return r!==id&&isDone(cur,r);})); });
+      if(dep.length){ toast('Najpierw cofnij: '+dep[0].label.join(' ')); return; }
+      delete prog[cur][id]; persist(); closeSheet(); renderSubject();
+    };
+  }
+  function closeSheet(){ openId=null; $('shade').classList.remove('on'); $('sheet').classList.remove('on'); }
+  $('shade').onclick=closeSheet;
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
+
+
+
+  /* ---------- dziennik partii (szachy) ---------- */
+  var gpOpen=false;
+  function gamesPanel(){
+    var g=games(cur), tot=g.a+g.b+g.c, tdone=isDone(cur,'tourn');
+    function row(key,label,v,dis){ return '<div class="gp-row"><span>'+label+'</span><button type="button" data-g="'+key+'" data-d="-1" aria-label="Odejmij"'+(v<1||dis?' disabled':'')+'>−</button><b>'+v+'</b><button type="button" data-g="'+key+'" data-d="1" aria-label="Dodaj"'+(dis?' disabled':'')+'>+</button></div>'; }
+    function ck(b){ return b?'<i class="ok">✓</i>':'<i class="no">✗</i>'; }
+    var s1=gateInfo(cur,{gate:'school'}).ok, s2=gateInfo(cur,{gate:'rank'}).ok;
+    return '<details class="gp"'+(gpOpen?' open':'')+'><summary><span class="gp-h">Dziennik partii</span><em>Partie: '+(tot+g.t)+'</em></summary>'+
+      row('a','10 min + 5 s',g.a)+row('b','60 min',g.b)+row('c','Blitz',g.c)+row('t','Turniej szkolny'+(tdone?'':' (po zdobyciu turnieju)'),g.t,!tdone)+
+      '<div class="gp-req"><b>Turniej szkolny</b> '+ck(s1)+' '+tot+' / 4 partie · 10+5 '+ck(g.a>=1)+' 60 min '+ck(g.b>=1)+' blitz '+ck(g.c>=1)+'</div>'+
+      '<div class="gp-req"><b>Turniej rankingowy</b> '+ck(s2)+' '+(tot+g.t)+' / 10 partii · 10+5 '+Math.min(g.a,3)+'/3 · 60 min '+Math.min(g.b,3)+'/3 · blitz '+Math.min(g.c,3)+'/3</div></details>';
+  }
+  /* ---------- kafelki gier logicznych (bez drzewka) ---------- */
+  function tileInfo(t,v){
+    var max=tileMax(t), pct=Math.min(100,Math.round(v/max*100)), cur_, nxt;
+    if(t.mode==='level'){
+      cur_=v?('Poziom '+v+' z '+max+': '+t.levels[v-1]):'Jeszcze nie zaczęte';
+      nxt=v<max?('Następny: '+t.levels[v]):'Najwyższy poziom osiągnięty';
+    }else{
+      var r=null; t.th.forEach(function(x){ if(v>=x.n) r=x; });
+      var nx=t.th.find(function(x){return v<x.n;});
+      cur_=t.unit+': '+v+(r?' · '+r.name:'');
+      nxt=nx?('Do rangi „'+nx.name+'”: jeszcze '+(nx.n-v)):'Najwyższa ranga osiągnięta';
+    }
+    return {pct:pct,cur:cur_,nxt:nxt,done:v>=max};
+  }
+  function renderTiles(){
+    var p=part(cur), stage=$('stage'), doIntro=intro; intro=false;
+    var reduceM=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+    stage.innerHTML='<div class="gtiles">'+p.tiles.map(function(t,i){
+      var v=(prog[cur]&&prog[cur][t.id])||0, f=tileInfo(t,v);
+      return '<div class="gcard'+(f.done?' done':'')+(doIntro&&!reduceM?' in':'')+'" style="--gc:'+t.col+(doIntro&&!reduceM?';--id:'+(80+i*140)+'ms':'')+'">'+
+        '<div class="gc-top">'+icon(t.icon)+'<div><h3>'+t.name+'</h3><div class="gc-cur">'+f.cur+'</div></div></div>'+
+        '<p class="gc-desc">'+t.desc+'</p>'+
+        '<div class="gc-bar"><i style="width:'+f.pct+'%"></i></div><div class="gc-nxt">'+f.nxt+'</div>'+
+        '<div class="gc-act"><button type="button" class="gc-m" data-ti="'+t.id+'" data-d="-1"'+(v<1?' disabled':'')+'>−</button>'+
+        '<button type="button" class="gc-p" data-ti="'+t.id+'" data-d="1"'+(f.done?' disabled':'')+'>'+(t.mode==='level'?'Następny poziom':t.add)+'</button></div></div>';
+    }).join('')+'</div>';
+    stage.scrollLeft=0;
+  }
+  $('stage').addEventListener('click',function(e){
+    if(e.target.closest('.gp>summary')){ gpOpen=!gpOpen; return; }
+    var b=e.target.closest('[data-g]');
+    if(b&&!b.disabled){ var g=prog[cur].__g=prog[cur].__g||{}, k=b.dataset.g; g[k]=Math.max(0,(g[k]||0)+Number(b.dataset.d)); persist(); var sl=this.scrollTop; renderTree(); return; }
+    var c=e.target.closest('[data-ti]');
+    if(c&&!c.disabled){
+      var t=part(cur).tiles.find(function(x){return x.id===c.dataset.ti;}), v0=prog[cur][t.id]||0, d=Number(c.dataset.d);
+      var v1=Math.max(0,Math.min(tileMax(t),v0+d)); if(v1===v0) return;
+      prog[cur][t.id]=v1; if(!v1) delete prog[cur][t.id]; persist(); renderSubject();
+      if(d>0) sweepFx(); if(v1>=tileMax(t)&&v0<tileMax(t)) toast('Ukończone: '+t.name);
+      var nb=$('stage').querySelector('[data-ti="'+t.id+'"].gc-p'); 
+    }
+  });
+
+  /* ---------- animacja zdobycia umiejętności ---------- */
+  var fx=document.createElement('div'); fx.id='fx'; fx.setAttribute('aria-hidden','true');
+  (function(){
+    var P=[['#ff3df2','M0 40H44L84 80V132'],['#2ad6ff','M120 0V28L160 68H240'],['#ffe14a','M32 240V196L72 156H132'],['#ff3df2','M240 120H204L164 160V208L196 240'],
+      ['#2ad6ff','M0 120H30L62 88V50'],['#b266ff','M60 0V18L90 48'],['#ffe14a','M240 40H196L170 14V0'],['#2ad6ff','M104 240V210L132 182V150'],
+      ['#ff3df2','M150 100V120H190L214 144'],['#b266ff','M0 200H40L58 218V240'],['#ffe14a','M200 240V224L222 202H240'],['#2ad6ff','M10 0V12L36 38']];
+    var g=''; P.forEach(function(p){ g+='<path d="'+p[1]+'" stroke="'+p[0]+'" stroke-width="6" opacity=".22"/><path d="'+p[1]+'" stroke="'+p[0]+'" stroke-width="1.7"/>'; });
+    fx.innerHTML='<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="fxp" width="240" height="240" patternUnits="userSpaceOnUse"><g fill="none" stroke-linecap="round" stroke-linejoin="round">'+g+'</g></pattern></defs><rect width="100%" height="100%" fill="#07030a" fill-opacity=".3"/><rect width="100%" height="100%" fill="url(#fxp)"/></svg>';
+    document.body.appendChild(fx);
+  })();
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function celebrate(id){
+    var p=part(cur), dist={}; dist[id]=0; var q=[id];
+    var adj={}; p.nodes.forEach(function(x){ if(!isDone(cur,x.id)) return;
+      x.req.forEach(function(r){ if(!isDone(cur,r)) return; (adj[x.id]=adj[x.id]||[]).push(r); (adj[r]=adj[r]||[]).push(x.id); }); });
+    while(q.length){ var u=q.shift(); (adj[u]||[]).forEach(function(v){ if(dist[v]===undefined){ dist[v]=dist[u]+1; q.push(v); } }); }
+    var T0=reduce?0:700, HOP=130, stage=$('stage');
+    var nd=stage.querySelector('.node[data-id="'+id+'"]'); if(nd&&!reduce) nd.classList.add('pop');
+    Object.keys(dist).forEach(function(k){ if(k===id) return;
+      var e=stage.querySelector('.node[data-id="'+k+'"]'); if(!e) return;
+      e.style.setProperty('--d',(T0+dist[k]*HOP)+'ms'); e.classList.add('wv'); });
+    stage.querySelectorAll('.cab').forEach(function(c){
+      var a=dist[c.dataset.a], b=dist[c.dataset.b]; if(a===undefined||b===undefined) return;
+      c.style.setProperty('--d',(T0+Math.min(a,b)*HOP)+'ms'); c.classList.add('wv'); });
+    sweepFx();
+  }
+  function sweepFx(){ if(reduce) return; fx.classList.remove('go'); void fx.offsetWidth; fx.classList.add('go'); setTimeout(function(){fx.classList.remove('go');},1900); }
+
+  /* reset sekcji z dwuetapowym potwierdzeniem (bez okien dialogowych) */
+  var rt=null;
+  $('rstBtn').onclick=function(){
+    var b=$('rstBtn');
+    if(!b.classList.contains('sure')){ b.classList.add('sure'); b.textContent='Na pewno?'; clearTimeout(rt); rt=setTimeout(function(){b.classList.remove('sure');b.textContent='Reset ścieżki';},3000); return; }
+    clearTimeout(rt); b.classList.remove('sure'); b.textContent='Reset ścieżki';
+    prog[cur]={}; persist(); renderSubject(); toast('Postępy w ścieżce wyzerowane');
+  };
+
+  var dt=null;
+  $('demoBtn').onclick=function(){
+    var b=this;
+    if(!b.classList.contains('sure')){ b.classList.add('sure'); b.textContent='Na pewno? Postępy zostaną zastąpione'; clearTimeout(dt); dt=setTimeout(function(){b.classList.remove('sure');b.textContent='Przywróć dane demonstracyjne';},3500); return; }
+    clearTimeout(dt); b.classList.remove('sure'); b.textContent='Przywróć dane demonstracyjne';
+    var d=demoSeed(); Object.keys(PATHS).forEach(function(k){ prog[k]=d[k]||{}; }); persist(); renderMenu(); toast('Przywrócono dane demonstracyjne');
+  };
+  renderMenu();
+})();
+</script>
+</body>
+</html>

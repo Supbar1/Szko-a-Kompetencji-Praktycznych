@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pomysły">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Pomysły szkoły</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d2a26; --muted:#6b7a74; --line:#e3dfd5;
+  --brand:#1f6f5c; --brand-ink:#ffffff; --danger:#c0392b; --ai:#eaf3f0;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#141a18; --card:#1d2623; --ink:#e8efec; --muted:#93a39c; --line:#2c3935; --brand:#3aa388; --brand-ink:#0d1512; --ai:#22302c; --danger:#e57373}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px}
+body{padding-bottom:96px;min-height:100vh}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 14px) 16px 8px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top .right{display:flex;gap:8px}
+h1{font-size:1.25rem;margin:0}
+.sub{color:var(--muted);font-size:.85rem;margin-top:2px}
+.icon-btn{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:.9rem;font-family:inherit}
+.icon-btn.ai{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+textarea{min-height:120px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+#search{margin:10px 0 8px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:.9rem;font-family:inherit}
+.chip.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.chip .n{opacity:.7;margin-left:4px;font-size:.8rem}
+main{padding:12px 16px;max-width:760px;margin:0 auto}
+.statusrow{display:flex;gap:8px;margin:0 0 12px;align-items:center}
+.statusrow select{padding:9px 12px}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--cat,var(--brand));border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 4px;font-size:1.05rem}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;font-size:.78rem}
+.tag{padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--cat,var(--brand)) 15%,transparent);color:var(--ink);border:1px solid color-mix(in srgb,var(--cat,var(--brand)) 40%,transparent)}
+.tag.st{background:transparent;border-color:var(--line);color:var(--muted)}
+.desc{white-space:pre-wrap;color:var(--ink);opacity:.9;font-size:.95rem;margin:6px 0 0}
+.card .actions{display:flex;gap:8px;margin-top:10px}
+.card .actions button{flex:1;border:1px solid var(--line);background:none;color:var(--ink);border-radius:10px;padding:9px;font-size:.88rem;font-family:inherit}
+.card .actions .del{color:var(--danger)}
+.empty{text-align:center;color:var(--muted);padding:48px 16px;line-height:1.5}
+.fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 18px);background:var(--brand);color:var(--brand-ink);border:none;border-radius:999px;padding:16px 22px;font-size:1rem;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);font-family:inherit}
+dialog{border:none;border-radius:18px;padding:0;width:min(560px,94vw);max-height:92vh;background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.pad{padding:18px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:90vh}
+label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.btns{display:flex;gap:10px;margin-top:4px}
+.btns button{flex:1;padding:13px;border-radius:12px;font-size:1rem;border:1px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit}
+.btns .primary,.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+.menu button.item{width:100%;text-align:left;padding:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font-size:1rem;font-family:inherit}
+.hint{color:var(--muted);font-size:.82rem;line-height:1.4;margin:0}
+h2{margin:0}
+h4{margin:6px 0 0;font-size:.95rem}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;color:var(--ink);margin:0}
+.check input{width:20px;height:20px;margin-top:2px;flex:0 0 auto}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#222;color:#fff;padding:10px 16px;border-radius:999px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+/* kategorie */
+.catrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.catrow .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+.catrow .nm{flex:1;min-width:0}
+.catrow .nm small{display:block;color:var(--muted)}
+.catrow button{border:1px solid var(--line);background:none;color:var(--ink);border-radius:8px;padding:6px 10px;font-family:inherit}
+.addcat{display:flex;gap:8px}.addcat button{padding:0 16px;border-radius:12px;border:none;background:var(--brand);color:var(--brand-ink);font-weight:600;font-family:inherit}
+/* czat */
+dialog.chat{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}
+dialog.chat[open]{display:flex;flex-direction:column}
+.chathead{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;border-bottom:1px solid var(--line)}
+.msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:10px 14px;border-radius:16px;line-height:1.4;white-space:pre-wrap;font-size:.98rem}
+.bub.user{align-self:flex-end;background:var(--brand);color:var(--brand-ink);border-bottom-right-radius:4px}
+.bub.assistant{align-self:flex-start;background:var(--ai);border-bottom-left-radius:4px}
+.bub.system{align-self:center;background:transparent;color:var(--muted);font-size:.85rem;text-align:center;border:1px dashed var(--line)}
+.prop{align-self:stretch;background:var(--card);border:2px solid var(--brand);border-radius:14px;padding:12px}
+.prop ul{margin:8px 0 10px;padding-left:20px}
+.prop li{margin-bottom:6px;font-size:.93rem}
+.chatfoot{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid var(--line);background:var(--bg)}
+.chatfoot textarea{min-height:46px;max-height:140px;padding:11px 12px}
+.round{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:1.15rem;flex:0 0 auto;font-family:inherit}
+.round.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.round.rec{background:var(--danger);color:#fff;border-color:var(--danger);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.intro{color:var(--muted);line-height:1.5;font-size:.95rem}
+.intro .btns{margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1 id="title">Pomysły szkoły</h1>
+      <div class="sub" id="count"></div>
+    </div>
+    <div class="right">
+      <button class="icon-btn ai" id="chatBtn">💬 Rozmowa</button>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">⋯</button>
+    </div>
+  </div>
+  <input id="search" type="search" placeholder="Szukaj pomysłów…">
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <div class="statusrow">
+    <label for="statusFilter" style="margin:0">Status:</label>
+    <select id="statusFilter"></select>
+  </div>
+  <div id="list"></div>
+</main>
+
+<button class="fab" id="addBtn">+ Nowy pomysł</button>
+<div id="toast"></div>
+
+<!-- formularz pomysłu -->
+<dialog id="dlg">
+  <div id="form" class="pad">
+    <h2 id="dlgTitle">Nowy pomysł</h2>
+    <div><label for="fCat">Kategoria</label><select id="fCat"></select></div>
+    <div><label for="fTitle">Tytuł</label><input id="fTitle" maxlength="140" placeholder="Krótka nazwa pomysłu"></div>
+    <div><label for="fDetail" id="fDetailLbl">Szczegół</label><input id="fDetail" maxlength="140"></div>
+    <div><label for="fDesc">Opis / notatki</label><textarea id="fDesc" placeholder="Co dokładnie chcesz zrobić? Jakie materiały, ile czasu, jakie efekty?"></textarea></div>
+    <div class="row">
+      <div><label for="fStatus">Status</label><select id="fStatus"></select></div>
+      <div><label for="fPrio">Priorytet</label>
+        <select id="fPrio"><option value="1">Niski</option><option value="2" selected>Średni</option><option value="3">Wysoki</option></select></div>
+    </div>
+    <div class="btns">
+      <button type="button" id="cancel">Anuluj</button>
+      <button type="button" class="primary" id="saveIdea">Zapisz</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- menu -->
+<dialog id="menuDlg">
+  <div class="pad menu">
+    <h2>Menu</h2>
+    <button class="item" id="catsBtn">🗂️ Kategorie (dodaj, zmień nazwę)</button>
+    <button class="item" id="settingsBtn">⚙️ Ustawienia rozmowy z AI i Dysku Google</button>
+    <button class="item" id="shareBtn">📤 Wyślij kopię zapasową (Dysk, mail…)</button>
+    <button class="item" id="exportBtn">⬇️ Zapisz kopię do pliku</button>
+    <button class="item" id="importBtn">⬆️ Wczytaj kopię zapasową</button>
+    <button class="item" id="rename">✏️ Zmień nazwę szkoły</button>
+    <button class="item" id="studentBtn">🎓 Widok ucznia: drzewko rozwoju (prototyp)</button>
+    <button class="item" id="installBtn" hidden>📲 Zainstaluj aplikację</button>
+    <p class="hint" id="driveStatus"></p>
+    <p class="hint">Pomysły zapisują się na tym telefonie i działają bez internetu. Rób kopię zapasową, żeby nie stracić danych przy zmianie telefonu lub czyszczeniu przeglądarki.</p>
+    <div class="btns"><button type="button" id="closeMenu">Zamknij</button></div>
+  </div>
+  <input type="file" id="file" accept="application/json" hidden>
+</dialog>
+
+<!-- kategorie -->
+<dialog id="catDlg">
+  <div class="pad">
+    <h2>Kategorie</h2>
+    <div id="catList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="addcat"><input id="newCat" placeholder="Nowa kategoria, np. Współpraca z firmami" maxlength="60"><button id="addCat">Dodaj</button></div>
+    <p class="hint">Kategorię z pomysłami można usunąć dopiero po przeniesieniu lub usunięciu jej pomysłów.</p>
+    <div class="btns"><button type="button" id="closeCats">Zamknij</button></div>
+  </div>
+</dialog>
+
+<!-- ustawienia -->
+<dialog id="setDlg">
+  <div class="pad">
+    <h2>Ustawienia</h2>
+    <h4>Rozmowa z AI</h4>
+    <div><label for="sKey">Klucz API Anthropic (przechowywany tylko na tym telefonie, nie trafia do kopii)</label>
+      <input id="sKey" type="password" autocomplete="off" placeholder="sk-ant-…"></div>
+    <div><label for="sModel">Model</label><input id="sModel" placeholder="claude-sonnet-5-5"></div>
+    <label class="check"><input type="checkbox" id="sSpeak"><span>Czytaj odpowiedzi na głos</span></label>
+    <label class="check"><input type="checkbox" id="sAuto"><span>Wysyłaj wypowiedź automatycznie po skończeniu mówienia</span></label>
+    <label class="check"><input type="checkbox" id="sCont"><span>Rozmowa ciągła: po odpowiedzi AI mikrofon włącza się sam (na spacer). Możesz mówić „tak” lub „nie”, żeby zatwierdzać zmiany.</span></label>
+    <h4>Kopia na Dysku Google</h4>
+    <div><label for="sClient">Google Client ID (z Google Cloud, pokażę jak go utworzyć)</label>
+      <input id="sClient" autocomplete="off" placeholder="1234-abc.apps.googleusercontent.com"></div>
+    <label class="check"><input type="checkbox" id="sDrive"><span>Automatycznie zapisuj kopię po zmianach i raz dziennie</span></label>
+    <button type="button" class="item" id="driveNow" style="padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;text-align:left">☁️ Połącz z Dyskiem i zapisz kopię teraz</button>
+    <p class="hint" id="driveStatus2"></p>
+    <div class="btns"><button type="button" id="setCancel">Anuluj</button><button type="button" class="primary" id="setSave">Zapisz</button></div>
+  </div>
+</dialog>
+
+<!-- czat -->
+<dialog id="chatDlg" class="chat">
+  <div class="chathead"><strong>Rozmowa z AI</strong><button class="icon-btn" id="chatClose">Zamknij</button></div>
+  <div class="msgs" id="msgs"></div>
+  <div class="chatfoot">
+    <textarea id="chatInput" rows="1" placeholder="Napisz lub mów…"></textarea>
+    <button class="round" id="micBtn" aria-label="Mikrofon">🎤</button>
+    <button class="round primary" id="sendBtn" aria-label="Wyślij">➤</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  'use strict';
+  var KEY='pomysly-szkoly-v1', SKEY='pomysly-szkoly-ustawienia-v1';
+  var STATUSES=['Nowy','W analizie','Do realizacji','Wdrożony','Odrzucony'];
+  var PALETTE=['#2f7d6b','#c47a1e','#4f6bb5','#b5546b','#7a5aa6','#3d8fa3','#8a8a2f','#c0623b'];
+  var DEFAULT_CATS=[
+    {id:'lekcje',name:'Lekcje',color:PALETTE[0],detail:'Przedmiot'},
+    {id:'struktura',name:'Struktura zajęć',color:PALETTE[1],detail:'Czas trwania / układ'},
+    {id:'metody',name:'Sposób prowadzenia',color:PALETTE[2],detail:'Forma'},
+    {id:'wyjazdy',name:'Wyjazdy',color:PALETTE[3],detail:'Miejsce'}
+  ];
+  var $=function(id){return document.getElementById(id);};
+
+  // ---------- dane ----------
+  var state=load(), settings=loadSettings();
+  var filterCat='all', filterStatus='all', query='', editingId=null;
+
+  function clone(o){return JSON.parse(JSON.stringify(o));}
+  function load(){
+    var s=null;
+    try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+    if(!s||!Array.isArray(s.ideas)) s={schoolName:'',ideas:[]};
+    if(!Array.isArray(s.categories)||!s.categories.length) s.categories=clone(DEFAULT_CATS);
+    return s;
+  }
+  function loadSettings(){
+    var d={apiKey:'',model:'claude-sonnet-5-5',speak:true,autoSend:true,continuous:false,clientId:'',driveAuto:false,driveFileId:'',lastBackup:0};
+    try{ var s=JSON.parse(localStorage.getItem(SKEY)); if(s) Object.keys(s).forEach(function(k){d[k]=s[k];}); }catch(e){}
+    return d;
+  }
+  function saveSettings(){ try{localStorage.setItem(SKEY,JSON.stringify(settings));}catch(e){} }
+  function save(){
+    try{ localStorage.setItem(KEY,JSON.stringify(state)); }
+    catch(e){ toast('Nie udało się zapisać danych'); }
+    scheduleBackup();
+  }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('show');},2400); }
+  function catById(id){ return state.categories.find(function(c){return c.id===id;}); }
+  function catByName(n){ n=String(n||'').trim().toLowerCase(); return state.categories.find(function(c){return c.name.trim().toLowerCase()===n;}); }
+  function catOf(id){ return catById(id)||state.categories[0]; }
+  function addCategory(name,detail){
+    name=String(name||'').trim(); if(!name) return null;
+    var ex=catByName(name); if(ex) return ex;
+    var c={id:'k'+uid(),name:name,color:PALETTE[state.categories.length%PALETTE.length],detail:(detail&&String(detail).trim())||'Szczegół'};
+    state.categories.push(c); return c;
+  }
+  function exportData(){ return {version:2,schoolName:state.schoolName,categories:state.categories,ideas:state.ideas}; }
+
+  // ---------- widok listy ----------
+  function renderChips(){
+    var counts={all:state.ideas.length};
+    state.categories.forEach(function(c){counts[c.id]=state.ideas.filter(function(i){return i.cat===c.id;}).length;});
+    var items=[{id:'all',name:'Wszystkie'}].concat(state.categories);
+    if(filterCat!=='all'&&!catById(filterCat)) filterCat='all';
+    $('chips').innerHTML=items.map(function(c){
+      return '<button class="chip '+(filterCat===c.id?'on':'')+'" data-cat="'+esc(c.id)+'">'+esc(c.name)+'<span class="n">'+counts[c.id]+'</span></button>';
+    }).join('');
+  }
+  function renderList(){
+    var q=query.trim().toLowerCase();
+    var items=state.ideas
+      .filter(function(i){return filterCat==='all'||i.cat===filterCat;})
+      .filter(function(i){return filterStatus==='all'||i.status===filterStatus;})
+      .filter(function(i){return !q||((i.title||'')+' '+(i.detail||'')+' '+(i.desc||'')).toLowerCase().indexOf(q)>-1;})
+      .sort(function(a,b){return ((b.prio||2)-(a.prio||2))||((b.updated||0)-(a.updated||0));});
+    if(!items.length){
+      $('list').innerHTML=state.ideas.length
+        ?'<div class="empty">Brak pomysłów dla wybranych filtrów.</div>'
+        :'<div class="empty"><b>Tu jeszcze pusto.</b><br>Dotknij „+ Nowy pomysł” albo „💬 Rozmowa”, żeby zapisać pierwszy pomysł.</div>';
+      return;
+    }
+    var prioName={1:'Niski priorytet',2:'Średni priorytet',3:'Wysoki priorytet'};
+    $('list').innerHTML=items.map(function(i){
+      var c=catOf(i.cat);
+      return '<article class="card" style="--cat:'+esc(c.color)+'" data-id="'+esc(i.id)+'">'+
+        '<h3>'+esc(i.title)+'</h3>'+
+        '<div class="meta"><span class="tag">'+esc(c.name)+'</span><span class="tag st">'+esc(i.status)+'</span>'+
+        '<span class="tag st">'+(prioName[i.prio]||'')+'</span>'+
+        (i.detail?'<span class="tag st">'+esc(c.detail)+': '+esc(i.detail)+'</span>':'')+'</div>'+
+        (i.desc?'<p class="desc">'+esc(i.desc)+'</p>':'')+
+        '<div class="actions"><button data-act="edit">Edytuj</button><button data-act="next">Zmień status</button><button data-act="del" class="del">Usuń</button></div>'+
+      '</article>';
+    }).join('');
+  }
+  function renderHead(){
+    $('title').textContent=state.schoolName||'Pomysły szkoły';
+    var n=state.ideas.length;
+    $('count').textContent=(n===1?'1 pomysł':n+' pomysłów')+' • '+state.categories.length+' kategorii';
+  }
+  function render(){ renderHead(); renderChips(); renderList(); }
+
+  // ---------- formularz pomysłu ----------
+  function fillSelects(){
+    $('fStatus').innerHTML=STATUSES.map(function(s){return '<option>'+s+'</option>';}).join('');
+    $('statusFilter').innerHTML='<option value="all">Wszystkie</option>'+STATUSES.map(function(s){return '<option>'+s+'</option>';}).join('');
+  }
+  function fillCatSelect(){ $('fCat').innerHTML=state.categories.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>';}).join(''); }
+  function updateDetailLabel(){ var c=catOf($('fCat').value); $('fDetailLbl').textContent=c.detail||'Szczegół'; }
+  function openForm(id){
+    editingId=id||null;
+    var i=id?state.ideas.find(function(x){return x.id===id;}):null;
+    fillCatSelect();
+    $('dlgTitle').textContent=i?'Edytuj pomysł':'Nowy pomysł';
+    $('fCat').value=i?i.cat:(filterCat!=='all'?filterCat:state.categories[0].id);
+    $('fTitle').value=i?i.title:''; $('fDetail').value=i?i.detail:''; $('fDesc').value=i?i.desc:'';
+    $('fStatus').value=i?i.status:STATUSES[0]; $('fPrio').value=i?i.prio:2;
+    updateDetailLabel(); $('dlg').showModal();
+    if(!i) setTimeout(function(){$('fTitle').focus();},50);
+  }
+  $('fCat').addEventListener('change',updateDetailLabel);
+  $('addBtn').onclick=function(){openForm();};
+  $('cancel').onclick=function(){$('dlg').close();};
+  function saveIdea(){
+    var title=$('fTitle').value.trim();
+    if(!title){ toast('Wpisz tytuł pomysłu'); $('fTitle').focus(); return; }
+    var data={cat:$('fCat').value,title:title,detail:$('fDetail').value.trim(),desc:$('fDesc').value.trim(),status:$('fStatus').value,prio:parseInt($('fPrio').value,10),updated:Date.now()};
+    if(editingId){ Object.assign(state.ideas.find(function(x){return x.id===editingId;}),data); }
+    else{ state.ideas.push(Object.assign({id:uid(),created:Date.now()},data)); }
+    $('dlg').close(); save(); render(); toast('Zapisano');
+  }
+  $('saveIdea').onclick=saveIdea;
+  $('fTitle').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); saveIdea(); } });
+
+  $('chips').addEventListener('click',function(e){var b=e.target.closest('.chip'); if(!b) return; filterCat=b.dataset.cat; render();});
+  $('statusFilter').onchange=function(e){filterStatus=e.target.value; renderList();};
+  $('search').addEventListener('input',function(e){query=e.target.value; renderList();});
+  $('list').addEventListener('click',function(e){
+    var btn=e.target.closest('button[data-act]'); if(!btn) return;
+    var id=btn.closest('.card').dataset.id;
+    var idea=state.ideas.find(function(x){return x.id===id;});
+    if(btn.dataset.act==='edit') openForm(id);
+    if(btn.dataset.act==='next'){
+      var next=STATUSES[(STATUSES.indexOf(idea.status)+1)%STATUSES.length];
+      idea.status=next; idea.updated=Date.now(); save(); render(); toast('Status: '+next);
+    }
+    if(btn.dataset.act==='del'){
+      if(confirm('Usunąć pomysł „'+idea.title+'”?')){ state.ideas=state.ideas.filter(function(x){return x.id!==id;}); save(); render(); }
+    }
+  });
+
+  // ---------- kategorie ----------
+  function renderCats(){
+    $('catList').innerHTML=state.categories.map(function(c){
+      var n=state.ideas.filter(function(i){return i.cat===c.id;}).length;
+      return '<div class="catrow" data-id="'+esc(c.id)+'"><span class="dot" style="background:'+esc(c.color)+'"></span>'+
+        '<div class="nm">'+esc(c.name)+'<small>Pole: '+esc(c.detail)+' • pomysłów: '+n+'</small></div>'+
+        '<button data-a="ren">Zmień</button><button data-a="del">Usuń</button></div>';
+    }).join('');
+  }
+  $('catsBtn').onclick=function(){$('menuDlg').close(); renderCats(); $('catDlg').showModal();};
+  $('closeCats').onclick=function(){$('catDlg').close(); render();};
+  $('addCat').onclick=function(){
+    var v=$('newCat').value.trim(); if(!v) return;
+    if(catByName(v)){toast('Taka kategoria już istnieje'); return;}
+    addCategory(v); $('newCat').value=''; save(); renderCats(); render(); toast('Dodano kategorię');
+  };
+  $('catList').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-a]'); if(!b) return;
+    var c=catById(b.closest('.catrow').dataset.id);
+    if(b.dataset.a==='ren'){
+      var n=prompt('Nazwa kategorii:',c.name); if(n===null) return;
+      n=n.trim(); if(!n) return;
+      var d=prompt('Nazwa dodatkowego pola w pomysłach (np. Przedmiot, Miejsce):',c.detail);
+      c.name=n; if(d!==null&&d.trim()) c.detail=d.trim();
+      save(); renderCats(); render();
+    }
+    if(b.dataset.a==='del'){
+      if(state.ideas.some(function(i){return i.cat===c.id;})){ alert('Ta kategoria ma pomysły. Najpierw je usuń lub przenieś do innej kategorii (Edytuj pomysł).'); return; }
+      if(state.categories.length<=1){ alert('Musi zostać przynajmniej jedna kategoria.'); return; }
+      if(confirm('Usunąć kategorię „'+c.name+'”?')){ state.categories=state.categories.filter(function(x){return x.id!==c.id;}); save(); renderCats(); render(); }
+    }
+  });
+
+  // ---------- menu, kopie ----------
+  $('menuBtn').onclick=function(){updateDriveStatus(); $('menuDlg').showModal();};
+  $('closeMenu').onclick=function(){$('menuDlg').close();};
+  $('rename').onclick=function(){
+    var n=prompt('Nazwa szkoły:',state.schoolName||'');
+    if(n!==null){state.schoolName=n.trim(); save(); render();}
+    $('menuDlg').close();
+  };
+  function backupFile(){ return new File([JSON.stringify(exportData(),null,2)],'pomysly-szkoly-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'}); }
+  function download(file){
+    var a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=file.name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  }
+  $('exportBtn').onclick=function(){download(backupFile()); toast('Kopia zapisana');};
+  $('shareBtn').onclick=function(){
+    var f=backupFile();
+    if(navigator.canShare&&navigator.canShare({files:[f]})){ navigator.share({files:[f],title:'Kopia pomysłów szkoły'}).catch(function(){}); }
+    else{ download(f); toast('Udostępnianie niedostępne, zapisano plik'); }
+  };
+  $('importBtn').onclick=function(){$('file').click();};
+  $('file').onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var d=JSON.parse(r.result);
+        if(!d||!Array.isArray(d.ideas)) throw 0;
+        if(confirm('Wczytać '+d.ideas.length+' pomysłów? To zastąpi obecne dane.')){
+          state={schoolName:d.schoolName||'',categories:(Array.isArray(d.categories)&&d.categories.length)?d.categories:clone(DEFAULT_CATS),ideas:d.ideas};
+          save(); render(); toast('Wczytano'); $('menuDlg').close();
+        }
+      }catch(_){alert('To nie jest poprawny plik kopii zapasowej.');}
+      e.target.value='';
+    };
+    r.readAsText(f);
+  };
+  $('studentBtn').onclick=function(){ location.href='uczen.html'; };
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault(); deferred=e; $('installBtn').hidden=false;});
+  $('installBtn').onclick=async function(){ if(!deferred) return; deferred.prompt(); await deferred.userChoice; deferred=null; $('installBtn').hidden=true; };
+
+  // ---------- Dysk Google ----------
+  var gToken=null, gExp=0, backupTimer=null;
+  function loadGIS(){
+    return new Promise(function(res,rej){
+      if(window.google&&google.accounts&&google.accounts.oauth2) return res();
+      var s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.onload=function(){res();}; s.onerror=function(){rej(new Error('Brak połączenia z Google'));};
+      document.head.appendChild(s);
+    });
+  }
+  function getToken(interactive){
+    return new Promise(function(resolve,reject){
+      if(gToken&&Date.now()<gExp-60000) return resolve(gToken);
+      if(!settings.clientId) return reject(new Error('Brak Google Client ID w ustawieniach'));
+      loadGIS().then(function(){
+        var tc=google.accounts.oauth2.initTokenClient({
+          client_id:settings.clientId,
+          scope:'https://www.googleapis.com/auth/drive.file',
+          callback:function(r){ if(r.error) return reject(new Error(r.error)); gToken=r.access_token; gExp=Date.now()+(r.expires_in||3600)*1000; resolve(gToken); },
+          error_callback:function(e){reject(new Error((e&&e.type)||'Błąd logowania Google'));}
+        });
+        tc.requestAccessToken({prompt:interactive?'':'none'});
+      }).catch(reject);
+    });
+  }
+  async function driveUpload(interactive){
+    var tk=await getToken(interactive);
+    var body=JSON.stringify(exportData());
+    async function multipart(url,method,meta){
+      var b='b'+Math.random().toString(36).slice(2);
+      var payload='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--';
+      return fetch(url,{method:method,headers:{Authorization:'Bearer '+tk,'Content-Type':'multipart/related; boundary='+b},body:payload});
+    }
+    var id=settings.driveFileId, r;
+    if(id){ r=await multipart('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=multipart','PATCH',{}); if(r.status===404) id=''; }
+    if(!id){ r=await multipart('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart','POST',{name:'pomysly-szkoly-kopia.json',mimeType:'application/json'}); }
+    if(!r.ok) throw new Error('Dysk Google odpowiedział błędem '+r.status);
+    var j=await r.json(); settings.driveFileId=j.id||id; settings.lastBackup=Date.now(); saveSettings();
+  }
+  function fmtTime(t){ return t?new Date(t).toLocaleString('pl-PL'):'jeszcze nie wykonano'; }
+  var driveMsg='';
+  function updateDriveStatus(){
+    var t=settings.clientId?('Kopia na Dysku Google: '+fmtTime(settings.lastBackup)+(driveMsg?' • '+driveMsg:'')):'Kopia na Dysku Google nie jest skonfigurowana (Ustawienia).';
+    $('driveStatus').textContent=t; $('driveStatus2').textContent=t;
+  }
+  function scheduleBackup(){
+    if(!settings.driveAuto||!settings.clientId) return;
+    clearTimeout(backupTimer);
+    backupTimer=setTimeout(function(){ autoBackup(); },30000);
+  }
+  function autoBackup(){
+    driveUpload(false).then(function(){driveMsg='';updateDriveStatus();}).catch(function(){driveMsg='wymagane ponowne połączenie (Ustawienia → Połącz z Dyskiem)'; updateDriveStatus();});
+  }
+  function dailyBackup(){
+    if(!settings.driveAuto||!settings.clientId) return;
+    var last=settings.lastBackup?new Date(settings.lastBackup).toDateString():'';
+    if(last!==new Date().toDateString()) autoBackup();
+  }
+
+  // ---------- ustawienia ----------
+  $('settingsBtn').onclick=function(){
+    $('menuDlg').close();
+    $('sKey').value=settings.apiKey; $('sModel').value=settings.model;
+    $('sSpeak').checked=!!settings.speak; $('sAuto').checked=!!settings.autoSend; $('sCont').checked=!!settings.continuous;
+    $('sClient').value=settings.clientId; $('sDrive').checked=!!settings.driveAuto;
+    updateDriveStatus(); $('setDlg').showModal();
+  };
+  $('setCancel').onclick=function(){$('setDlg').close();};
+  function readSettings(){
+    settings.apiKey=$('sKey').value.trim(); settings.model=$('sModel').value.trim()||'claude-sonnet-5-5';
+    settings.speak=$('sSpeak').checked; settings.autoSend=$('sAuto').checked; settings.continuous=$('sCont').checked;
+    settings.clientId=$('sClient').value.trim(); settings.driveAuto=$('sDrive').checked; saveSettings();
+  }
+  $('setSave').onclick=function(){readSettings(); $('setDlg').close(); toast('Ustawienia zapisane');};
+  $('driveNow').onclick=function(){
+    readSettings();
+    driveMsg='łączenie…'; updateDriveStatus();
+    driveUpload(true).then(function(){driveMsg='';updateDriveStatus();toast('Kopia zapisana na Dysku');}).catch(function(e){driveMsg='błąd: '+e.message;updateDriveStatus();});
+  };
+
+  // ---------- czat z AI ----------
+  var chatView=[], history=[], proposals=[], pendingNote='', busy=false, listening=false, rec=null;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var TOOLS=[
+    {name:'add_category',description:'Dodaje nową kategorię pomysłów.',input_schema:{type:'object',properties:{name:{type:'string',description:'Nazwa kategorii'},detail_label:{type:'string',description:'Nazwa dodatkowego pola w pomysłach tej kategorii, np. Przedmiot, Miejsce'}},required:['name']}},
+    {name:'rename_category',description:'Zmienia nazwę istniejącej kategorii.',input_schema:{type:'object',properties:{old_name:{type:'string'},new_name:{type:'string'}},required:['old_name','new_name']}},
+    {name:'add_idea',description:'Dodaje nowy pomysł do kategorii (jeśli kategoria nie istnieje, zostanie utworzona).',input_schema:{type:'object',properties:{category:{type:'string',description:'Nazwa kategorii'},title:{type:'string'},detail:{type:'string',description:'Wartość dodatkowego pola kategorii'},description:{type:'string',description:'Opis, notatki, wnioski z rozmowy'},status:{type:'string',enum:STATUSES},priority:{type:'integer',enum:[1,2,3]}},required:['category','title']}},
+    {name:'update_idea',description:'Edytuje istniejący pomysł. Podaj id z danych i tylko pola do zmiany.',input_schema:{type:'object',properties:{id:{type:'string'},category:{type:'string'},title:{type:'string'},detail:{type:'string'},description:{type:'string'},status:{type:'string',enum:STATUSES},priority:{type:'integer',enum:[1,2,3]}},required:['id']}}
+  ];
+  function buildSystem(){
+    var data={szkola:state.schoolName||'(bez nazwy)',kategorie:state.categories.map(function(c){return {nazwa:c.name,dodatkowe_pole:c.detail};}),
+      pomysly:state.ideas.map(function(i){return {id:i.id,kategoria:catOf(i.cat).name,tytul:i.title,szczegol:i.detail,opis:(i.desc||'').slice(0,400),status:i.status,priorytet:i.prio};})};
+    return 'Jesteś asystentem nauczyciela, który tworzy szkołę kompetencji praktycznych. Rozmawiacie głosowo, często w trakcie spaceru, więc odpowiadaj po polsku, krótko i naturalnie, bez markdownu, list i nagłówków. '+
+      'Pomagaj rozwijać pomysły na lekcje, strukturę zajęć, sposoby prowadzenia i wyjazdy oraz usprawniać szkołę: zadawaj jedno pytanie doprecyzowujące naraz, proponuj konkretne ulepszenia. '+
+      'Gdy z rozmowy wynikają wnioski do zapisania, użyj narzędzi (add_category, rename_category, add_idea, update_idea). Użytkownik zobaczy listę zmian i je zatwierdzi, więc nie pytaj o zgodę słowami. '+
+      'Używaj tylko id z poniższych danych, nie twórz duplikatów istniejących pomysłów i kategorii, a w opisach zapisuj konkretne wnioski z rozmowy.\n\nAKTUALNE DANE APLIKACJI (JSON):\n'+JSON.stringify(data);
+  }
+  function describe(p){
+    var i=p.input||{};
+    if(p.name==='add_category') return 'Nowa kategoria: „'+(i.name||'?')+'”';
+    if(p.name==='rename_category') return 'Zmiana nazwy kategorii „'+(i.old_name||'?')+'” na „'+(i.new_name||'?')+'”';
+    if(p.name==='add_idea') return 'Nowy pomysł w „'+(i.category||'?')+'”: '+(i.title||'?')+(i.description?' – '+i.description:'');
+    if(p.name==='update_idea'){
+      var idea=state.ideas.find(function(x){return x.id===i.id;});
+      var ch=[]; ['title','category','detail','description','status','priority'].forEach(function(k){ if(i[k]!=null) ch.push(({title:'tytuł',category:'kategoria',detail:'szczegół',description:'opis',status:'status',priority:'priorytet'})[k]+': '+i[k]); });
+      return 'Edycja pomysłu „'+(idea?idea.title:'(nie znaleziono)')+'” → '+ch.join('; ');
+    }
+    return p.name;
+  }
+  function applyProposal(p){
+    var i=p.input||{};
+    if(p.name==='add_category'){ if(!i.name) return false; addCategory(i.name,i.detail_label); return true; }
+    if(p.name==='rename_category'){ var c=catByName(i.old_name); if(!c||!i.new_name) return false; c.name=String(i.new_name).trim(); return true; }
+    if(p.name==='add_idea'){
+      if(!i.title) return false;
+      var cat=catByName(i.category)||addCategory(i.category||'Inne'); if(!cat) return false;
+      state.ideas.push({id:uid(),created:Date.now(),updated:Date.now(),cat:cat.id,title:String(i.title).trim(),detail:String(i.detail||'').trim(),desc:String(i.description||'').trim(),status:STATUSES.indexOf(i.status)>-1?i.status:'Nowy',prio:[1,2,3].indexOf(i.priority)>-1?i.priority:2});
+      return true;
+    }
+    if(p.name==='update_idea'){
+      var idea=state.ideas.find(function(x){return x.id===i.id;}); if(!idea) return false;
+      if(i.title!=null) idea.title=String(i.title).trim();
+      if(i.category!=null){ var k=catByName(i.category)||addCategory(i.category); if(k) idea.cat=k.id; }
+      if(i.detail!=null) idea.detail=String(i.detail).trim();
+      if(i.description!=null) idea.desc=String(i.description).trim();
+      if(i.status!=null&&STATUSES.indexOf(i.status)>-1) idea.status=i.status;
+      if(i.priority!=null&&[1,2,3].indexOf(i.priority)>-1) idea.prio=i.priority;
+      idea.updated=Date.now(); return true;
+    }
+    return false;
+  }
+  function renderChat(){
+    var box=$('msgs'); box.innerHTML='';
+    if(!chatView.length){
+      var d=document.createElement('div'); d.className='intro';
+      d.innerHTML='Porozmawiaj z AI o swojej szkole: o lekcjach, strukturze zajęć, metodach i wyjazdach. Gdy z rozmowy wyniknie coś do zapisania, AI zaproponuje nowe kategorie, pomysły lub edycje, a Ty je zatwierdzisz.'+
+        (settings.apiKey?'':'<br><br><b>Brak klucza API.</b> Wpisz go w Menu → Ustawienia. Do tego czasu możesz zobaczyć, jak wygląda zatwierdzanie zmian.<div class="btns"><button type="button" id="demoBtn">Zobacz przykład (demo)</button></div>');
+      box.appendChild(d);
+      var db=d.querySelector('#demoBtn'); if(db) db.onclick=demo;
+    }
+    chatView.forEach(function(m){ var b=document.createElement('div'); b.className='bub '+m.role; b.textContent=m.text; box.appendChild(b); });
+    if(proposals.length){
+      var c=document.createElement('div'); c.className='prop';
+      c.innerHTML='<b>Proponowane zmiany</b><ul>'+proposals.map(function(p){return '<li>'+esc(describe(p))+'</li>';}).join('')+'</ul><div class="btns"><button type="button" id="pNo">Odrzuć</button><button type="button" class="primary" id="pYes">Zatwierdź</button></div>';
+      box.appendChild(c); c.querySelector('#pYes').onclick=approve; c.querySelector('#pNo').onclick=reject;
+    }
+    if(busy){ var t=document.createElement('div'); t.className='bub system'; t.textContent='AI myśli…'; box.appendChild(t); }
+    box.scrollTop=box.scrollHeight;
+    $('sendBtn').disabled=busy;
+  }
+  function say(text,onend){
+    if(!('speechSynthesis' in window)||!settings.speak||!text){ if(onend) onend(); return; }
+    try{
+      speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(text); u.lang='pl-PL';
+      u.onend=function(){ if(onend) onend(); }; u.onerror=function(){ if(onend) onend(); };
+      speechSynthesis.speak(u);
+    }catch(e){ if(onend) onend(); }
+  }
+  function afterSpeech(){ if(settings.continuous&&$('chatDlg').open&&!busy&&!listening) startListening(); }
+  function approve(){
+    var ok=0,fail=0; proposals.forEach(function(p){ if(applyProposal(p)) ok++; else fail++; });
+    proposals=[]; save(); render();
+    var msg='Zapisano zmian: '+ok+(fail?' (nie udało się: '+fail+')':'');
+    chatView.push({role:'system',text:msg}); pendingNote='(Zmiany zostały zatwierdzone i zapisane.) ';
+    renderChat(); say('Zapisane.',afterSpeech);
+  }
+  function reject(){
+    proposals=[]; chatView.push({role:'system',text:'Zmiany odrzucone.'}); pendingNote='(Użytkownik odrzucił proponowane zmiany.) ';
+    renderChat(); say('Dobrze, nie zapisuję.',afterSpeech);
+  }
+  function demo(){
+    chatView.push({role:'user',text:'Dodaj kategorię Współpraca z firmami i pomysł: zaprosić lokalnego stolarza na warsztat.'});
+    chatView.push({role:'assistant',text:'[DEMO, przykładowa odpowiedź, nie pochodzi z prawdziwego AI] Rozumiem. Przygotowałem nową kategorię i pomysł. Ile osób mogłoby wziąć udział w takim warsztacie?'});
+    proposals=[{name:'add_category',input:{name:'Współpraca z firmami',detail_label:'Firma'}},{name:'add_idea',input:{category:'Współpraca z firmami',title:'Warsztat ze stolarzem',detail:'Lokalny stolarz',description:'Zaprosić lokalnego stolarza, który pokaże uczniom podstawy obróbki drewna i opowie o pracy w zawodzie.',status:'Nowy',priority:2}}];
+    renderChat();
+  }
+  function handleUserText(text){
+    text=(text||'').trim(); if(!text||busy) return;
+    if(proposals.length){
+      var words=text.split(/\s+/).length;
+      if(words<=3&&/^(tak|zatwierdź|zatwierdzam|zapisz|ok|okej|dobrze|zgoda)(?=$|[\s.,!?])/i.test(text)){ $('chatInput').value=''; approve(); return; }
+      if(words<=3&&/^(nie|odrzuć|odrzucam|anuluj|zostaw)(?=$|[\s.,!?])/i.test(text)){ $('chatInput').value=''; reject(); return; }
+      proposals=[]; pendingNote='(Poprzednie propozycje zmian nie zostały zatwierdzone.) ';
+    }
+    $('chatInput').value='';
+    chatView.push({role:'user',text:text});
+    if(!settings.apiKey){ chatView.push({role:'system',text:'Brak klucza API. Dodaj go w Menu → Ustawienia.'}); renderChat(); return; }
+    history.push({role:'user',content:pendingNote+text}); pendingNote='';
+    ask();
+  }
+  async function ask(){
+    busy=true; renderChat();
+    try{
+      var msgs=history.slice(-20); while(msgs.length&&msgs[0].role!=='user') msgs.shift();
+      var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:settings.model,max_tokens:1500,system:buildSystem(),tools:TOOLS,messages:msgs})});
+      if(!r.ok){ var m='Błąd '+r.status; try{var e=await r.json(); if(e.error&&e.error.message) m+=': '+e.error.message;}catch(_){} throw new Error(m); }
+      var j=await r.json(), text='', props=[];
+      (j.content||[]).forEach(function(b){ if(b.type==='text') text+=b.text; else if(b.type==='tool_use') props.push({name:b.name,input:b.input||{}}); });
+      text=text.trim(); proposals=props;
+      chatView.push({role:'assistant',text:text||'Przygotowałem propozycję zmian.'});
+      history.push({role:'assistant',content:((text||'')+(props.length?'\n[Zaproponowane zmiany: '+props.map(describe).join('; ')+']':''))||'(brak odpowiedzi)'});
+      busy=false; renderChat();
+      say((text||'')+(props.length?' Proponuję zmiany: '+props.map(describe).join('. ')+'. Zatwierdzić?':''),afterSpeech);
+    }catch(e){
+      history.pop(); busy=false;
+      chatView.push({role:'system',text:'Nie udało się połączyć z AI. '+e.message}); renderChat();
+    }
+  }
+  function startListening(){
+    if(!SR){ toast('Ta przeglądarka nie obsługuje mikrofonu. Użyj dyktowania z klawiatury.'); return; }
+    if(listening) return;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    rec=new SR(); rec.lang='pl-PL'; rec.interimResults=true; rec.continuous=false;
+    var finalText='';
+    rec.onstart=function(){listening=true; $('micBtn').classList.add('rec');};
+    rec.onresult=function(ev){
+      var t=''; for(var k=0;k<ev.results.length;k++){ t+=ev.results[k][0].transcript; if(ev.results[k].isFinal) finalText=t; }
+      $('chatInput').value=t;
+    };
+    rec.onerror=function(ev){ if(ev.error==='not-allowed'||ev.error==='service-not-allowed') toast('Brak zgody na mikrofon'); };
+    rec.onend=function(){
+      listening=false; $('micBtn').classList.remove('rec');
+      var t=$('chatInput').value.trim();
+      if(t&&(finalText||settings.autoSend)&&settings.autoSend) handleUserText(t);
+    };
+    try{ rec.start(); }catch(e){ listening=false; }
+  }
+  function stopListening(){ try{ if(rec) rec.abort(); }catch(e){} listening=false; $('micBtn').classList.remove('rec'); }
+  $('micBtn').onclick=function(){ if(listening) { try{rec.stop();}catch(e){} } else startListening(); };
+  $('sendBtn').onclick=function(){ handleUserText($('chatInput').value); };
+  $('chatInput').addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); handleUserText($('chatInput').value); } });
+  $('chatBtn').onclick=function(){ renderChat(); $('chatDlg').showModal(); };
+  function closeChat(){ stopListening(); try{speechSynthesis.cancel();}catch(e){} $('chatDlg').close(); }
+  $('chatClose').onclick=closeChat;
+  $('chatDlg').addEventListener('close',function(){ stopListening(); try{speechSynthesis.cancel();}catch(e){} });
+  if(!SR) $('micBtn').style.display='none';
+
+  fillSelects(); render(); dailyBackup();
+  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
